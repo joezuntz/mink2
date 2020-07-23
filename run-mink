@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+if [ "${INSIDE_DOCKER}" == "1" ] ; then
+    echo "You are already running docker"
+    exit
+fi
+
+docker run -v $PWD:/root/mink  --rm -it joezuntz/mink bash

@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+if [ "${INSIDE_DOCKER}" == "1" ] ; then
+    echo "You are already running docker"
+    exit
+fi
+
+#  jupyter identifier
+TOKEN=$(openssl rand -hex 16)
+
+
+docker run  -v $PWD:/root/mink  \
+            --publish 8000:8000 \
+            --privileged=true \
+            --rm  joezuntz/mink \
+            bash -c "jupyter trust *.ipynb ; jupyter notebook --no-browser --ip=0.0.0.0 --port=8000 --allow-root --NotebookApp.token=${TOKEN}"  &
+
+# Wait a few seconds for the notebook to start up
+sleep 4
+
+# Open the web browser
+open "http://127.0.0.1:8000/?token=${TOKEN}"
+
+# Wait for the docker to close
+echo
+echo "--------------------------------------------------------------------------"
+echo
+echo "To end this you can either ctrl-c and then press enter"
+echo "or click the quit button in the browser"
+echo
+echo "--------------------------------------------------------------------------"
+echo
+wait
