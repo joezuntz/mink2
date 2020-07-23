@@ -100,7 +100,6 @@ def calc_mf(m,thr_ct,N,is_clustering):
     dm_dtheta, dm_dphi, d2m_dtheta2, d2m_dphi2, d2m_dtheta_dphi = map_derivatives(m)
 
     std_dev = np.std(m) 
-    mean_m = np.mean(m)
     
     if is_clustering is True:
         v = np.linspace(0,6*std_dev,thr_ct)              # clustering map range
@@ -163,6 +162,9 @@ def coefficient(thr_ct, smoothing, nside, itr, b):
     # likelihood perpendicular line points (get constants from plotting notebook)
     omega_m = np.linspace(0.2,0.4,b)
     sigma_8 = 0.8989639361571576*omega_m + 0.5303108191528527
+    
+    # calculate S_8
+    S_8 = sigma_8 * (omega_m/0.3)**0.5329788249790618   # exponent value found in plotting notebook
 
 
     tic = time.perf_counter()
@@ -181,25 +183,23 @@ def coefficient(thr_ct, smoothing, nside, itr, b):
     toc = time.perf_counter()
     print(round((toc - tic)/3600,2),'hrs')
 
-    # calculate S_8
-    S_8 = np.zeros(b)
-    for i in range(b):
-        S_8[i] = sigma_8[i] * (omega_m[i]/0.3)**0.5329788249790618  # exponent value found in plotting notebook
+    # singular covariance matrix workaround
+    good = cov.diagonal() > 0
+    cov2 = cov[good][:, good]
 
-    # add a small amount of noise to the cov matrix if it is singular
-    cov_w_noise = cov
-    for i in range(30):
-        for j in range(30):
-            cov_w_noise[i][j] = cov[i][j] + np.random.random()*0.0001
 
     # calculate the likelihood          
     L = np.zeros(b)
+    
     try:
+        inv_cov = np.linalg.inv(cov)
         for i in range(b):
-            L[i] = -0.5 * (V_all[i] - v_all_mean) @ np.linalg.inv(cov) @ (V_all[i] - v_all_mean)
+            L[i] = -0.5 * (V_all[i] - v_all_mean) @ inv_cov @ (V_all[i] - v_all_mean)
     except:
+        inv_cov2 = np.linalg.inv(cov2)
         for i in range(b):
-            L[i] = -0.5 * (V_all[i] - v_all_mean) @ np.linalg.inv(cov_w_noise) @ (V_all[i] - v_all_mean)
+            d = (V_all[i] - v_all_mean)[good]
+            L[i] = -0.5 * d @ inv_cov2 @ d
             
     coefficient = np.polyfit(S_8,L,2)
     constraining_power = np.sqrt(-1 / (2*coefficient[0]))
