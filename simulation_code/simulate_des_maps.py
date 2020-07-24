@@ -243,12 +243,12 @@ def run_flask(
     # to radians.  verbose=False stops it from printing out loads of stuff
     for i in range(nbin_lens):
         clustering_maps[i] = healpy.smoothing(
-            clustering_maps[i], fwhm=np.radians(smoothing / 60), verbose=False
+            clustering_maps[i], fwhm=np.radians(smoothing / 60), verbose=False, iter=1
         )
 
     for i in range(nbin_source):
         convergence_maps[i] = healpy.smoothing(
-            convergence_maps[i], fwhm=np.radians(smoothing / 60), verbose=False
+            convergence_maps[i], fwhm=np.radians(smoothing / 60), verbose=False, iter=1
         )
 
     return clustering_maps, convergence_maps

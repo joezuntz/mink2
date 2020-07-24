@@ -145,7 +145,9 @@ def coefficient(thr_ct, smoothing, nside, itr, b):
     # Fixed map run with iteration count
     v_all_fixed = np.zeros((itr,array_len)) 
     for i in range(itr):
+        print("Simulating maps for iteration ", i)
         clustering_maps, lensing_maps = simulate_des_maps(0.3, 0.8, smoothing, nside)
+        print("Computing functionals for iteration", i)
         v_fixed, v0_fixed, v1_fixed, v2_fixed = calc_mf_2maps(clustering_maps,lensing_maps,thr_ct,N)
         v_all_fixed[i] = np.concatenate((v0_fixed.flatten(),v1_fixed.flatten(),v2_fixed.flatten()))
         print(i)
