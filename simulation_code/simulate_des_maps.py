@@ -264,10 +264,19 @@ def simulate_maps(
     source_n_of_z,
     source_n_total,
     smoothing,
+    nmax=None,
 ):
     # normalize the n(z) to the correct density
     lens_n_of_z = apply_normalization(z, lens_n_of_z, lens_n_total)
     source_n_of_z = apply_normalization(z, source_n_of_z, source_n_total)
+
+    # Just simulate a reduced number of maps
+    if nmax is not None:
+        lens_n_of_z = lens_n_of_z[:nmax]
+        source_n_of_z = source_n_of_z[:nmax]
+        lens_n_total = lens_n_total[:nmax]
+        source_n_total = source_n_total[:nmax]
+        biases = biases[:nmax]
 
     with inside_temp_directory() as tmpdir:
         # Compute power spectra C_ell
@@ -288,7 +297,7 @@ def simulate_maps(
     return maps
 
 
-def simulate_des_maps(omega_m, sigma_8, smoothing, nside):
+def simulate_des_maps(omega_m, sigma_8, smoothing, nside, nmax=None):
     f = fits.open(des_file)
     source_n_of_z = []
     source_n_total = []
@@ -344,6 +353,7 @@ def simulate_des_maps(omega_m, sigma_8, smoothing, nside):
         source_n_of_z,
         source_n_total,
         smoothing,
+        nmax=nmax,
     )
 
 
