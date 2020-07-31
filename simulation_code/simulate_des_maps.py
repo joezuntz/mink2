@@ -363,3 +363,68 @@ def XavierShift(z):
     a0 = 0.2
     s0 = 0.568591
     return a0 * (((z * s0) ** 2 + z * s0 + 1) / (z * s0 + 1) - 1)
+
+
+
+
+
+## Added by Nisha to test galaxy bias ##
+    
+def simulate_des_maps_bias(omega_m, sigma_8, smoothing, nside, b1, nmax=None):
+    f = fits.open(des_file)
+    source_n_of_z = []
+    source_n_total = []
+
+    # Load DES source (convergence) sample from the FITS
+    # file
+    ext = f["nz_source_mcal"]
+    hdr = ext.header
+    z = ext.data["Z_MID"][:]
+    for b in range(1, 5):
+        nz = ext.data[f"BIN{b}"][:]
+        source_n_of_z.append(nz)
+        ngal = hdr[f"NGAL_{b}"]
+        source_n_total.append(ngal)
+
+    # and the lens (clustering) sample from the same file.
+    lens_n_of_z = []
+    lens_n_total = []
+
+    ext = f["nz_lens"]
+    hdr = ext.header
+    z = ext.data["Z_MID"][:]
+    for b in range(1, 6):
+        nz = ext.data[f"BIN{b}"][:]
+        lens_n_of_z.append(nz)
+        ngal = hdr[f"NGAL_{b}"]
+        lens_n_total.append(ngal)
+
+    f.close()
+
+    # construct the dictionary of parameters
+    # we will need.  We fix some and compute others.
+    cosmo_params = {
+        "Omega_c": omega_m - 0.049,
+        "Omega_b": 0.048,
+        "h": 0.7,
+        "n_s": 0.96,
+        "sigma8": sigma_8,
+    }
+
+    # These are galaxy biases, the ratio between dark matter density
+    # and galaxy density.  In real analyses we would need to vary these
+    # but for now we fix them.
+    biases = [b1, 1.65, 1.60, 1.92, 2.00]
+
+    return simulate_maps(
+        cosmo_params,
+        nside,
+        biases,
+        z,
+        lens_n_of_z,
+        lens_n_total,
+        source_n_of_z,
+        source_n_total,
+        smoothing,
+        nmax=nmax,
+    )
