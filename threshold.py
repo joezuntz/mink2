@@ -41,14 +41,11 @@ def threshold_sim(itr,nside,smoothing,b):
     return c_map_fixed,l_map_fixed,c_map,l_map,S_8
 
 
-def threshold_mf(thr_ct,itr,nside,smoothing,map_len=2,b=10):
+def threshold_mf(c_map_fixed,l_map_fixed,c_map,l_map,S_8,thr_ct,itr,nside,smoothing,map_len=2,b=10):
     
     array_len = map_len*thr_ct*3
     
     N = 12*nside*nside  
-    
-    c_map_fixed,l_map_fixed,c_map,l_map,S_8 = threshold_sim(itr,nside,smoothing,b)
-    print('Finished simulating maps, onto calculating MFs...')
 
     ## fixed maps
     v_all_fixed = np.zeros((itr,array_len)) 
