@@ -183,9 +183,11 @@ def write_cl(c_ell):
 
 
 def run_flask(
-    cosmo_params, nside, z, lens_n_of_z, source_n_of_z, c_ell, smoothing, source_n_total
-):
+    cosmo_params, nside, z, lens_n_of_z, source_n_of_z, c_ell, smoothing, source_n_total, seed
+): #add numpy seed input
 
+    np.random.seed(seed)
+    
     # First save out C_ell values to input files
     write_cl(c_ell)
 
@@ -193,7 +195,7 @@ def run_flask(
     write_fields(z, lens_n_of_z, source_n_of_z)
 
     # pick a random seed
-    seed = np.random.randint(1000000)
+    flask_seed = np.random.randint(1000000000)
 
     # read a template version of the configuration file for FLASK
     template = open(template_file, "r").read()
@@ -209,7 +211,7 @@ def run_flask(
 
     # create the configuration file that FLASK operates on
     config = template.format(
-        seed=seed, omega_m=omega_m, omega_l=1 - omega_m, sigma_e=sigma_e, nside=nside,
+        seed=flask_seed, omega_m=omega_m, omega_l=1 - omega_m, sigma_e=sigma_e, nside=nside,
     )
 
     # write config
@@ -265,6 +267,7 @@ def simulate_maps(
     source_n_total,
     smoothing,
     nmax=None,
+    seed,
 ):
     # normalize the n(z) to the correct density
     lens_n_of_z = apply_normalization(z, lens_n_of_z, lens_n_total)
@@ -292,12 +295,13 @@ def simulate_maps(
             c_ell,
             smoothing,
             source_n_total,
+            seed,
         )
 
     return maps
 
 
-def simulate_des_maps(omega_m, sigma_8, smoothing, nside, nmax=None):
+def simulate_des_maps(omega_m, sigma_8, smoothing, nside, nmax=None, seed=29101995):
     f = fits.open(des_file)
     source_n_of_z = []
     source_n_total = []
@@ -331,8 +335,8 @@ def simulate_des_maps(omega_m, sigma_8, smoothing, nside, nmax=None):
     # construct the dictionary of parameters
     # we will need.  We fix some and compute others.
     cosmo_params = {
-        "Omega_c": omega_m - 0.049,
         "Omega_b": 0.048,
+        "Omega_c": omega_m - 0.048,
         "h": 0.7,
         "n_s": 0.96,
         "sigma8": sigma_8,
@@ -354,6 +358,7 @@ def simulate_des_maps(omega_m, sigma_8, smoothing, nside, nmax=None):
         source_n_total,
         smoothing,
         nmax=nmax,
+        seed,
     )
 
 
@@ -370,7 +375,7 @@ def XavierShift(z):
 
 ## Added by Nisha to test galaxy bias ##
     
-def simulate_des_maps_bias(omega_m, sigma_8, smoothing, nside, b1, nmax=None):
+def simulate_des_maps_bias(omega_m, sigma_8, smoothing, nside, b1, nmax=None, seed=29101995):
     f = fits.open(des_file)
     source_n_of_z = []
     source_n_total = []
@@ -427,4 +432,5 @@ def simulate_des_maps_bias(omega_m, sigma_8, smoothing, nside, b1, nmax=None):
         source_n_total,
         smoothing,
         nmax=nmax,
+        seed,
     )
