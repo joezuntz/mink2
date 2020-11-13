@@ -266,8 +266,8 @@ def simulate_maps(
     source_n_of_z,
     source_n_total,
     smoothing,
-    nmax=None,
     seed,
+    nmax=None,
 ):
     # normalize the n(z) to the correct density
     lens_n_of_z = apply_normalization(z, lens_n_of_z, lens_n_total)
@@ -357,8 +357,8 @@ def simulate_des_maps(omega_m, sigma_8, smoothing, nside, nmax=None, seed=291019
         source_n_of_z,
         source_n_total,
         smoothing,
-        nmax=nmax,
         seed,
+        nmax=nmax,  
     )
 
 
@@ -431,6 +431,6 @@ def simulate_des_maps_bias(omega_m, sigma_8, smoothing, nside, b1, nmax=None, se
         source_n_of_z,
         source_n_total,
         smoothing,
-        nmax=nmax,
         seed,
+        nmax=nmax,   
     )
