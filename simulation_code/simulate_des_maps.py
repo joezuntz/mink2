@@ -375,7 +375,8 @@ def XavierShift(z):
 
 ## Added by Nisha to test galaxy bias ##
     
-def simulate_des_maps_bias(omega_m, sigma_8, smoothing, nside, b1, nmax=None, seed=29101995):
+def simulate_des_maps_bias(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside, nmax=None, seed=29101995):
+
     f = fits.open(des_file)
     source_n_of_z = []
     source_n_total = []
@@ -409,17 +410,17 @@ def simulate_des_maps_bias(omega_m, sigma_8, smoothing, nside, b1, nmax=None, se
     # construct the dictionary of parameters
     # we will need.  We fix some and compute others.
     cosmo_params = {
-        "Omega_c": omega_m - 0.049,
-        "Omega_b": 0.048,
-        "h": 0.7,
-        "n_s": 0.96,
+        "Omega_c": omega_m - omega_b,
+        "Omega_b": omega_b,
+        "h": h,
+        "n_s": n_s,
         "sigma8": sigma_8,
     }
 
     # These are galaxy biases, the ratio between dark matter density
     # and galaxy density.  In real analyses we would need to vary these
     # but for now we fix them.
-    biases = [b1, 1.65, 1.60, 1.92, 2.00]
+    biases = [b1, b2, b3, b4, b5]
 
     return simulate_maps(
         cosmo_params,
