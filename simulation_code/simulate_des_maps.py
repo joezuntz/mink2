@@ -213,6 +213,7 @@ def run_flask(
     config = template.format(
         seed=flask_seed, omega_m=omega_m, omega_l=1 - omega_m, sigma_e=sigma_e, nside=nside,
     )
+    print(config)
 
     # write config
     open("flask.config", "w").write(config)
@@ -301,7 +302,7 @@ def simulate_maps(
     return maps
 
 
-def simulate_des_maps(omega_m, sigma_8, smoothing, nside, nmax=None, seed=29101995):
+def simulate_des_maps(omega_m, sigma_8, smoothing, nside, seed=29101995, nmax=None):
     f = fits.open(des_file)
     source_n_of_z = []
     source_n_total = []
@@ -375,8 +376,7 @@ def XavierShift(z):
 
 ## Added by Nisha to test galaxy bias ##
     
-def simulate_des_maps_bias(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside, nmax=None, seed=29101995):
-
+def simulate_des_maps_bias(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside, seed=29101995, nmax=None):
     f = fits.open(des_file)
     source_n_of_z = []
     source_n_total = []
