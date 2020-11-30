@@ -136,7 +136,7 @@ def calc_mf(m,thr_ct,is_clustering):
 
 
 # calculate MFs for both types of maps with different redshifts and galaxy biases
-def calc_mf_2maps(clustering_maps,lensing_maps,thr_ct,N):
+def calc_mf_2maps(clustering_maps,lensing_maps,thr_ct):
 
     map_len=len(clustering_maps)+len(lensing_maps)
 
