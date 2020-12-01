@@ -1,0 +1,11 @@
+#!/bin/bash
+#SBATCH --time=10:00:00
+#SBATCH --array=1-1000
+#SBATCH --cpus-per-task=4
+#SBATCH --nodes=1
+#SBATCH --tasks-per-node=1
+#SBATCH --output=log.%a.txt
+
+export LD_LIBRARY_PATH=${CONDA_PREFIX}/lib:${LD_LIBRARY_PATH}
+export OMP_NUM_THREADS=4
+python run_sim.py
