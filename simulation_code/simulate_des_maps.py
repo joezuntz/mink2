@@ -213,7 +213,7 @@ def run_flask(
     config = template.format(
         seed=flask_seed, omega_m=omega_m, omega_l=1 - omega_m, sigma_e=sigma_e, nside=nside,
     )
-    print(config)
+    #print(config)
 
     # write config
     open("flask.config", "w").write(config)
