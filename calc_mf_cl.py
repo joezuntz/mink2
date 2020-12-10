@@ -9,7 +9,7 @@ os.environ["PATH"]='/home/ngrewal/flask/bin:'+os.environ["PATH"]
 
 path = '/disk01/ngrewal/Fiducial_Simulations'
 path_mf = '/disk01/ngrewal/MFs'
-path_cl = '/disk01/ngrewal/CLs'
+path_cl = '/disk01/ngrewal/Cls'
 
 # define variables
 index = int(os.environ['SLURM_ARRAY_TASK_ID'])
