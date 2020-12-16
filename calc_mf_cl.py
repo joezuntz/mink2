@@ -28,7 +28,8 @@ cmaps1 = hp.ud_grade(cmaps,nside)
 lmaps1 = hp.ud_grade(lmaps,nside)
 
 # smooth maps
-smoothing = 20
+smoothing_arcmin = 5
+smoothing = np.radians(smoothing_arcmin/60)      # convert arcmin to degrees
 cmaps2 = np.zeros((len(cmaps),12*nside**2))   
 lmaps2 = np.zeros((len(lmaps),12*nside**2))
 
@@ -46,5 +47,5 @@ v_all = np.concatenate((v0.flatten(),v1.flatten(),v2.flatten()))
 c = Cl_2maps(cmaps2,lmaps2,nside)
 
 # save MFs and Cls
-np.save(os.path.join(path_mf, f'V_{index}'),v_all)
-np.save(os.path.join(path_cl, f'C_{index}'),c)
+np.save(os.path.join(path_mf, f'V_{index}_s{smoothing_arcmin}_n{nside}'),v_all)
+np.save(os.path.join(path_cl, f'C_{index}_s{smoothing_arcmin}_n{nside}'),c)
