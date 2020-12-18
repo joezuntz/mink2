@@ -23,7 +23,7 @@ lmaps = np.load(os.path.join(path, f'lmaps_{index}.npy'))  # lensing maps
 ## simplify maps
 
 # reduce pixel size
-nside = 512
+nside = 256
 cmaps1 = hp.ud_grade(cmaps,nside)         
 lmaps1 = hp.ud_grade(lmaps,nside)
 
