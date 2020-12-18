@@ -9,7 +9,6 @@ os.environ["PATH"]='/home/ngrewal/flask/bin:'+os.environ["PATH"]
 
 # simulation parameters
 nside = 1024
-N = 12*nside**2    # pixel count 
 smoothing = 0
 
 # fiducial parameter values
