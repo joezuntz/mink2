@@ -1,8 +1,12 @@
 import pymaster as nmt
 import numpy as np
 
+
+# define an empty dictionary for workspaces of each nside
+workspaces = {}
+
  
-def Cl_func(map_,mask,b):
+def Cl_func(map_,mask,b,w):
     
     """
     Parameters
@@ -10,17 +14,18 @@ def Cl_func(map_,mask,b):
     map_ : clustering or lensing map
     mask : mask applied to map (same array of ones used in each instace)
     b : number of ells per bandpower
+    w : workspace corresponding to nside
 
     Returns
     -------
     cl_00[0] : Cl value for the given map
     """
     
-    f_0 = nmt.NmtField(mask,[map_])             # initialise spin-0
-    cl_00 = nmt.compute_full_master(f_0,f_0,b)  # computer MASTER estimator
+    f_0 = nmt.NmtField(mask,[map_])               # initialise spin-0
+    cl_00 = nmt.compute_full_master(f_0,f_0,b,w)  # computer MASTER estimator using a workspace
     return cl_00[0]
 
-# calculate Cls for clustering and lensing maps
+
 def Cl_2maps(c_map,l_map,nside):
     
     """
@@ -40,9 +45,19 @@ def Cl_2maps(c_map,l_map,nside):
     map_len = 9                                  # number of clustering and lensing maps
     mask = np.ones(12*nside**2)                  # build mask
     
+    
+    if nside in workspaces:                      # find the corresponding workspace
+        w = workspaces[nside]
+    else:                                        # build a workspace for the given nside if it does not exist
+        w = nmt.NmtWorkspace()                   # define workspace
+        f0 = np.zeros(12*nside**2)               # make an empty map to pass through workspace
+        w.compute_coupling_matrix(f0, f0, b)     # compute workspace
+        workspaces[nside] = w                    # assign workspace the corresponding value
+
+    
     cl =np.zeros((map_len,cl_len))
-    for i in range(len(c_map)):
-        cl[i] = Cl_func(c_map[i],mask,b)
-    for j in range(len(l_map)):
-        cl[i+j+1] = Cl_func(l_map[j],mask,b)
+    for i in range(len(c_map)):                  # find Cls for clustering maps
+        cl[i] = Cl_func(c_map[i],mask,b,w)
+    for j in range(len(l_map)):                  # find Cls for lensing maps
+        cl[i+j+1] = Cl_func(l_map[j],mask,b,w)
     return cl
