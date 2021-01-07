@@ -22,7 +22,7 @@ def Cl_func(map_,mask,b,w):
     """
     
     f_0 = nmt.NmtField(mask,[map_])               # initialise spin-0
-    cl_00 = nmt.compute_full_master(f_0,f_0,b,w)  # computer MASTER estimator using a workspace
+    cl_00 = nmt.compute_full_master(f_0,f_0,b,workspace=w)  # computer MASTER estimator using a workspace
     return cl_00[0]
 
 
@@ -46,13 +46,13 @@ def Cl_2maps(c_map,l_map,nside):
     mask = np.ones(12*nside**2)                  # build mask
     
     
-    if nside in workspaces:                      # find the corresponding workspace
+    if nside in workspaces:                              # find the corresponding workspace
         w = workspaces[nside]
-    else:                                        # build a workspace for the given nside if it does not exist
-        w = nmt.NmtWorkspace()                   # define workspace
-        f0 = np.zeros(12*nside**2)               # make an empty map to pass through workspace
-        w.compute_coupling_matrix(f0, f0, b)     # compute workspace
-        workspaces[nside] = w                    # assign workspace the corresponding value
+    else:                                                # build a workspace for the given nside if it does not exist
+        w = nmt.NmtWorkspace()                           # define workspace
+        f0 = nmt.NmtField(mask,[np.zeros(12*nside**2)])  # make a field to pass through workspace
+        w.compute_coupling_matrix(f0, f0, b)             # compute workspace
+        workspaces[nside] = w                            # assign workspace the corresponding value
 
     
     cl =np.zeros((map_len,cl_len))
