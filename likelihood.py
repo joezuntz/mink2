@@ -10,6 +10,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import healpy as hp
+import math
 from mf import *
 from cl import *
 import sys
@@ -19,7 +20,9 @@ from simulate_des_maps import *
 os.environ["PATH"]='/home/ngrewal/flask/bin:'+os.environ["PATH"]
 
 
-
+# define an empty dictionary for mean and covariance of each nside and smoothing combo
+workspaces_v = {}
+workspaces_cov = {}
 
 
 def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10):
@@ -62,15 +65,61 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10):
     b4 = cosmo_params[8]
     b5 = cosmo_params[9]
     
+    
+    
+    
+    ## add try and except - check for value errors, and return -inf if needed
+    
+    try:
+    
+        # build new clustering and lensing maps
+        cmaps,lmaps = simulate_des_maps_bias(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside)
+    
+        if [nside,smoothing] in workspaces_v:                                # find the corresponding workspace
+            V = workspaces_v[nside,smoothing]
+            cov = workspaces_cov[nside,smoothing]
+        else:                                                  # load mean of fiducial simulation MF + Cl arrays (Note: assumes mean has been calculated already)
+            V = np.load(f'vc_all_s{smoothing}_n{nside}.npy')   # this comes from '/disk01/ngrewal/Fiducial_Simulations'
+            cov = np.cov(V.transpose())                        # find the covariance    
+            workspaces_v[nside,smoothing] = V
+            workspaces_cov[nside,smoothing] = cov                                                                                                                  
+        
+        i_cov = np.linalg.inv(cov)                         # find the inverse covariance  
+        vc_mean = np.mean(V,axis=0)                        # find the mean of the fiducial simulation MFs and Cls                                                                                     
+                                 
+        # calculate MFs                                                                                                                                                                                     
+        v,v0,v1,v2 = calc_mf_2maps(cmaps,lmaps,thr_ct)
+        v_all = np.concatenate((v0.flatten(),v1.flatten(),v2.flatten()))
+        
+        # calculate Cls                                                                                                                                                                                     
+        c = Cl_2maps(cmaps,lmaps,nside).flatten()
+        
+        # concatenate MFs and Cls
+        vc = np.concatenate((v_all,c))
+        
+        # find the likelihood                                                     
+        diff = vc - vc_mean
+        L = -0.5 * diff @ i_cov @ diff
+        
+        # return the likelihood
+        return L  #,diff,vc
+        
+    except:
+        print('error')
+        return -math.inf
+
+
+
+    ''' ORIGINAL CODE
     # build new clustering and lensing maps
     cmaps,lmaps = simulate_des_maps_bias(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside)
-
+    
     # load mean of fiducial simulation MF + Cl arrays (Note: assumes mean has been calculated already)
-    V = np.load(f'vc_all_s{smoothing}_n{nside}.npy')                # this comes from '/disk01/ngrewal/Fiducial_Simulations'
-    cov = np.cov(V.transpose())                                    # find the covariance                                                                                                                      
-    i_cov = np.linalg.inv(cov)                                     # find the inverse covariance  
-    vc_mean = np.mean(V,axis=0)                                    # find the mean of the fiducial simulation MFs and Cls                                                                                     
-                         
+    V = np.load(f'vc_all_s{smoothing}_n{nside}.npy')   # this comes from '/disk01/ngrewal/Fiducial_Simulations'
+    cov = np.cov(V.transpose())                        # find the covariance    
+    i_cov = np.linalg.inv(cov)                         # find the inverse covariance  
+    vc_mean = np.mean(V,axis=0)                        # find the mean of the fiducial simulation MFs and Cls                                                                                     
+                             
     # calculate MFs                                                                                                                                                                                     
     v,v0,v1,v2 = calc_mf_2maps(cmaps,lmaps,thr_ct)
     v_all = np.concatenate((v0.flatten(),v1.flatten(),v2.flatten()))
@@ -86,5 +135,5 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10):
     L = -0.5 * diff @ i_cov @ diff
     
     # return the likelihood
-    return L
-        
+    return L  
+    '''
