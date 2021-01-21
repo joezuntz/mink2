@@ -24,7 +24,7 @@ dict_v = {}
 dict_cov = {}
 
 
-def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10):
+def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, return_all=False):
     
     # input needs to be an array not a dictionary
     
@@ -102,7 +102,11 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10):
         
         # return the likelihood
         print('ok')
-        return L
+        
+        if return_all:
+            return L,v_all,c,vc,vc_mean,i_cov
+        else:
+            return L
         
     except:
         print('error')
