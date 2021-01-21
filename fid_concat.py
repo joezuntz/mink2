@@ -3,8 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # vary smoothing and nside
-smoothing=10
-nside=512
+smoothing=5
+nside=256
 
 # locations of MFs and Cls
 mf_path = '/disk01/ngrewal/MFs'
