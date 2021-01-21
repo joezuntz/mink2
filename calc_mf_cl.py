@@ -5,30 +5,31 @@ from cl import *
 
 os.environ["PATH"]='/home/ngrewal/flask/bin:'+os.environ["PATH"]
 
-# path for given inputs
+# define inputs
+nside = 256
+smoothing_arcmin = 5
+thr_ct = 10
 
+# path for given inputs
 path = '/disk01/ngrewal/Fiducial_Simulations'
 path_mf = '/disk01/ngrewal/MFs'
 path_cl = '/disk01/ngrewal/Cls'
 
-# define variables
+# define index of simulation and output
 index = int(os.environ['SLURM_ARRAY_TASK_ID'])
-thr_ct = 10
 
 # load maps
 cmaps = np.load(os.path.join(path, f'cmaps_{index}.npy'))  # clustering maps
 lmaps = np.load(os.path.join(path, f'lmaps_{index}.npy'))  # lensing maps
 
  
-## simplify maps
+## Simplify Maps ##
 
 # reduce pixel size
-nside = 256
-cmaps1 = hp.ud_grade(cmaps,nside)         
+cmaps1 = hp.ud_grade(cmaps,nside,power=-2)         
 lmaps1 = hp.ud_grade(lmaps,nside)
 
 # smooth maps
-smoothing_arcmin = 5
 smoothing = np.radians(smoothing_arcmin/60)      # convert arcmin to degrees
 cmaps2 = np.zeros((len(cmaps),12*nside**2))   
 lmaps2 = np.zeros((len(lmaps),12*nside**2))
@@ -38,6 +39,9 @@ for i in range(len(cmaps)):
  
 for i in range(len(lmaps)):
     lmaps2[i] = hp.smoothing(lmaps1[i],fwhm=smoothing) 
+
+    
+## Analysis ##    
 
 # calculate MFs
 v,v0,v1,v2 = calc_mf_2maps(cmaps,lmaps,thr_ct)
