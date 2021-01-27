@@ -44,7 +44,7 @@ for i in range(len(lmaps)):
 ## Analysis ##    
 
 # calculate MFs
-v,v0,v1,v2 = calc_mf_2maps(cmaps,lmaps,thr_ct)
+v,v0,v1,v2 = calc_mf_2maps(cmaps2,lmaps2,thr_ct)
 v_all = np.concatenate((v0.flatten(),v1.flatten(),v2.flatten()))
     
 # calculate Cls
