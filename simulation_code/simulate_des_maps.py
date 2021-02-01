@@ -376,8 +376,8 @@ def XavierShift(z):
 
 ## Added by Nisha to test galaxy bias ##
     
-def simulate_des_maps_bias(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside, seed=29101995, nmax=None):
-    f = fits.open(des_file)
+def simulate_des_maps_bias(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside, source_file = des_file, seed=29101995, nmax=None):
+    f = fits.open(source_file)
     source_n_of_z = []
     source_n_total = []
 
