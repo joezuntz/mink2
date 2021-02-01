@@ -26,7 +26,7 @@ def Cl_func(map_,mask,b,w):
     return cl_00[0]
 
 
-def Cl_2maps(c_map,l_map,nside):
+def Cl_2maps(c_map,l_map,nside,f):
     
     """
     Parameters
@@ -44,7 +44,7 @@ def Cl_2maps(c_map,l_map,nside):
     cl_len = b.get_n_bands()                     # length of Cls
     map_len = 9                                  # number of clustering and lensing maps
     mask = np.ones(12*nside**2)                  # build mask
-    
+    mask[f:] = 0
     
     if nside in workspaces:                              # find the corresponding workspace
         w = workspaces[nside]
