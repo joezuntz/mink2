@@ -101,15 +101,16 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, return_all=Fals
         L = -0.5 * diff @ i_cov @ diff
         
         # return the likelihood
-        print('ok')
+        #print('ok')
         
         if return_all:
-            return L,v_all,c,vc,vc_mean,i_cov
+            return L,v_all,c,vc,vc_mean,cov
         else:
             return L
         
     except:
-        print('error')
+        raise
+        #print('likelihood error')
         return -math.inf
 
 
