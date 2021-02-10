@@ -24,7 +24,7 @@ dict_v = {}
 dict_cov = {}
 
 
-def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, return_all=False):
+def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, return_all=False):
     
     # input needs to be an array not a dictionary
     
@@ -52,6 +52,8 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, return_all=Fals
     L :         The likehood for the input parameter space.
     '''
 
+    print('Cosmological parameter values: ',cosmo_params)
+
     # define cosmological parameters based on input array
     omega_b = cosmo_params[0]
     omega_m = cosmo_params[1]
@@ -64,7 +66,9 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, return_all=Fals
     b4 = cosmo_params[8]
     b5 = cosmo_params[9]
     
-    
+    # calculate sky fraction
+    frac = int(math.floor(sky_frac*12*nside**2))
+
     
     
     ## add try and except - check for value errors, and return -inf if needed
@@ -84,14 +88,14 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, return_all=Fals
             dict_cov[nside,smoothing] = cov              # save the covariance in the corresponding workspace                                                             
         
         i_cov = np.linalg.inv(cov)                             # find the inverse covariance  
-        vc_mean = np.mean(V,axis=0)                            # find the mean of the fiducial simulation MFs and Cls                                                                                     
+        vc_mean = np.mean(V,axis=0)                            # find the mean of the fiducial simulation MFs and Cls
                                  
         # calculate MFs                                                                                                                                                                                     
-        v,v0,v1,v2 = calc_mf_2maps(cmaps,lmaps,thr_ct)
+        v,v0,v1,v2 = calc_mf_2maps(cmaps,lmaps,thr_ct,frac)
         v_all = np.concatenate((v0.flatten(),v1.flatten(),v2.flatten()))
         
         # calculate Cls                                                                                                                                                                                     
-        c = Cl_2maps(cmaps,lmaps,nside).flatten()
+        c = Cl_2maps(cmaps,lmaps,nside,frac).flatten()
         
         # concatenate MFs and Cls
         vc = np.concatenate((v_all,c))
