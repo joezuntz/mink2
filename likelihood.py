@@ -24,7 +24,7 @@ dict_v = {}
 dict_cov = {}
 
 
-def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, return_all=False):
+def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_type = 'MF+Cl', return_all=False):
     
     # input needs to be an array not a dictionary
     
@@ -69,10 +69,82 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, ret
     # calculate sky fraction
     frac = int(math.floor(sky_frac*12*nside**2))
 
-    
+    # define type of analysis
+    if a_type=='MF+Cl':
+        t = 'vc'
+    if a_type=='MF':
+        t = 'v'
+    if a_type=='Cl':
+        t = 'c'
+
+
     
     ## add try and except - check for value errors, and return -inf if needed
     
+    try:
+    
+        # build new clustering and lensing maps
+        cmaps,lmaps = simulate_des_maps_bias(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside)
+    
+        if (nside,smoothing,t) in dict_v:                  # find the corresponding workspace
+            V = dict_v[nside,smoothing,t]
+            cov = dict_cov[nside,smoothing,t]
+        else:                                                  # load mean of fiducial simulation MF + Cl arrays (Note: assumes mean has been calculated already)
+            V = np.load(f'{t}_all_s{smoothing}_n{nside}.npy')   # this comes from '/disk01/ngrewal/Fiducial_Simulations'
+            cov = np.cov(V.transpose())                        # find the covariance    
+            dict_v[nside,smoothing,t] = V                  # save the mean vector in the corresponding workspace
+            dict_cov[nside,smoothing,t] = cov              # save the covariance in the corresponding workspace                                                             
+        
+        i_cov = np.linalg.inv(cov)                             # find the inverse covariance  
+        output_mean = np.mean(V,axis=0)                            # find the mean of the fiducial simulation MFs and Cls
+           
+
+        if a_type=='MF+Cl':
+                      
+            # calculate MFs                                                                                                                                                                                     
+            v,v0,v1,v2 = calc_mf_2maps(cmaps,lmaps,thr_ct,frac)
+            v_all = np.concatenate((v0.flatten(),v1.flatten(),v2.flatten()))
+            
+            # calculate Cls                                                                                                                                                                                     
+            c = Cl_2maps(cmaps,lmaps,nside,frac).flatten()
+            
+            # concatenate MFs and Cls
+            output = np.concatenate((v_all,c))
+        
+        if a_type=='MF':
+            
+            # calculate MFs                                                                                                                                                                                     
+            v,v0,v1,v2 = calc_mf_2maps(cmaps,lmaps,thr_ct,frac)
+            output = np.concatenate((v0.flatten(),v1.flatten(),v2.flatten()))
+            
+        if a_type=='Cl':
+
+            # calculate Cls                                                                                                                                                                                     
+            output = Cl_2maps(cmaps,lmaps,nside,frac).flatten()
+        
+        
+        # find the likelihood 
+        diff = output - output_mean
+        L = -0.5 * diff @ i_cov @ diff
+        
+        # return the likelihood
+        #print('ok')
+        
+        if return_all:
+            return L,v_all,c,vc,vc_mean,cov
+        else:
+            return L
+        
+    except:
+        raise
+        #print('likelihood error')
+        return -math.inf
+
+
+
+
+
+    ''' code capable of MF + Cl analysis only
     try:
     
         # build new clustering and lensing maps
@@ -116,10 +188,10 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, ret
         raise
         #print('likelihood error')
         return -math.inf
+    '''
 
 
-
-    ''' ORIGINAL CODE 
+    ''' non dictionary, non try code
     # build new clustering and lensing maps
     cmaps,lmaps = simulate_des_maps_bias(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside)
     
