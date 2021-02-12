@@ -24,7 +24,7 @@ dict_v = {}
 dict_cov = {}
 
 
-def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_type = 'MF+Cl', return_all=False):
+def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_type='MF+Cl', m_type='c+l', return_all=False):
     
     # input needs to be an array not a dictionary
     
@@ -46,6 +46,9 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_t
     smoothing : Gaussian smoothing applied to maps in arcminutes. The default is 10.
     nside :     The number of pixels on each side of the map; pixels in the map total to 12*nside**2. The default is 512.
     thr_ct :    Number of map thresholds; corresponds to number of convergence maps calculations are done upon. The default is 10.
+    sky_frac:   The percent of sky fraction in decimal format (i.e. 5% -> 0.05). The default is 1 (100%).
+    a_type:     Analysis type. Minkowski functional, power spectrum (Cl), or both. The default is both (MF+Cl).
+    m_type:     This specifies the types of maps: clustering, lensing, or both. The default is both ('c+l').
 
     Returns
     -------
@@ -86,41 +89,71 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_t
         # build new clustering and lensing maps
         cmaps,lmaps = simulate_des_maps_bias(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside)
     
-        if (nside,smoothing,t) in dict_v:                  # find the corresponding workspace
+        if (nside,smoothing,t) in dict_v:                       # find the corresponding workspace
             V = dict_v[nside,smoothing,t]
             cov = dict_cov[nside,smoothing,t]
-        else:                                                  # load mean of fiducial simulation MF + Cl arrays (Note: assumes mean has been calculated already)
+        else:                                                   # load mean of fiducial simulation MF + Cl arrays (Note: assumes mean has been calculated already)
             V = np.load(f'{t}_all_s{smoothing}_n{nside}.npy')   # this comes from '/disk01/ngrewal/Fiducial_Simulations'
-            cov = np.cov(V.transpose())                        # find the covariance    
-            dict_v[nside,smoothing,t] = V                  # save the mean vector in the corresponding workspace
-            dict_cov[nside,smoothing,t] = cov              # save the covariance in the corresponding workspace                                                             
-        
-        i_cov = np.linalg.inv(cov)                             # find the inverse covariance  
-        output_mean = np.mean(V,axis=0)                            # find the mean of the fiducial simulation MFs and Cls
+            cov = np.cov(V.transpose())                         # find the covariance    
+            dict_v[nside,smoothing,t] = V                       # save the mean vector in the corresponding workspace
+            dict_cov[nside,smoothing,t] = cov                   # save the covariance in the corresponding workspace                                                             
+         
+        i_cov = np.linalg.inv(cov)                              # find the inverse covariance  
+        output_mean = np.mean(V,axis=0)                         # find the mean of the fiducial simulation MFs and Cls
            
-
+        # Minkowski functional and power spectrum analysis
         if a_type=='MF+Cl':
                       
-            # calculate MFs                                                                                                                                                                                     
-            v,v0,v1,v2 = calc_mf_2maps(cmaps,lmaps,thr_ct,frac)
-            v_all = np.concatenate((v0.flatten(),v1.flatten(),v2.flatten()))
+            # clustering and lensing maps  
+            if m_type=='c+l':
+                v,v0,v1,v2 = calc_mf_2maps(cmaps,lmaps,thr_ct,frac)     # calculate MFs
+                c = Cl_2maps(cmaps,lmaps,nside,frac)                    # calculate Cls
             
-            # calculate Cls                                                                                                                                                                                     
-            c = Cl_2maps(cmaps,lmaps,nside,frac).flatten()
+            # clustering only
+            elif m_type=='c':
+                v,v0,v1,v2 = calc_mf_1map(cmaps,thr_ct,frac,True)       # calculate MFs
+                c = Cl_1map(cmaps,nside,frac)                           # calculate Cls
+                
+            # lensing only
+            elif m_type=='l':
+                v,v0,v1,v2 = calc_mf_1map(lmaps,thr_ct,frac,False)      # calculate MFs
+                c = Cl_1map(lmaps,nside,frac)                           # calculate Cls
             
             # concatenate MFs and Cls
-            output = np.concatenate((v_all,c))
+            #output = np.concatenate((np.concatenate((v0.flatten(),v1.flatten(),v2.flatten())),c.flatten()))
+            output = np.concatenate((v0.flatten(),v1.flatten(),v2.flatten(),c.flatten()))
         
+        # Minkowski functional analysis only
         if a_type=='MF':
             
-            # calculate MFs                                                                                                                                                                                     
-            v,v0,v1,v2 = calc_mf_2maps(cmaps,lmaps,thr_ct,frac)
-            output = np.concatenate((v0.flatten(),v1.flatten(),v2.flatten()))
+            # clustering and lensing maps
+            if m_type=='c+l':                                                                                                                                                                                   
+                v,v0,v1,v2 = calc_mf_2maps(cmaps,lmaps,thr_ct,frac)
             
+            # clustering only
+            elif m_type=='c':
+                v,v0,v1,v2 = calc_mf_1map(cmaps,thr_ct,frac,True)
+                
+            # lensing only
+            elif m_type=='l':
+                v,v0,v1,v2 = calc_mf_1map(lmaps,thr_ct,frac,False)
+            
+            output = np.concatenate((v0.flatten(),v1.flatten(),v2.flatten()))
+         
+        # power spectrum (Cl) analysis only
         if a_type=='Cl':
 
-            # calculate Cls                                                                                                                                                                                     
-            output = Cl_2maps(cmaps,lmaps,nside,frac).flatten()
+            # clustering and lensing maps  
+            if m_type=='c+l':                                                                                                                                                                                  
+                output = Cl_2maps(cmaps,lmaps,nside,frac).flatten()
+            
+            # clustering only
+            elif m_type=='c':
+                output = Cl_1map(cmaps,nside,frac).flatten()
+            
+            # lensing only
+            elif m_type=='l':
+                output = Cl_1map(lmaps,nside,frac).flatten()
         
         
         # find the likelihood 
@@ -144,7 +177,7 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_t
 
 
 
-    ''' code capable of MF + Cl analysis only
+    ''' code capable of MF + Cl analysis only with both map types
     try:
     
         # build new clustering and lensing maps
