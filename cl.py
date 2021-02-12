@@ -26,43 +26,6 @@ def Cl_func(map_,mask,b,w):
     return cl_00[0]
 
 
-
-def Cl_1map(input_map,nside,f):
-    
-    """
-    Parameters
-    ----------
-    input_map : 5 clustering maps (1/galaxy bias) bin or 4 lensing maps (1/redshift) bin
-    nside : number of pixels on each side of the map (total pixel count is 12*nside**2)
-    f: sky fraction
-
-    Returns
-    -------
-    cl : concatenated array of Cls for all 9 clustering and lensing maps
-    """
-
-    b = nmt.NmtBin.from_nside_linear(nside,50)   # apply binning with 50 ells per bandpower 
-    cl_len = b.get_n_bands()                     # length of Cls
-    map_len = len(input_map)                     # number of clustering and lensing maps
-    mask = np.ones(12*nside**2)                  # build mask
-    mask[f:] = 0                                 # slice map using sky fraction
-    
-    if nside in workspaces:                              # find the corresponding workspace
-        w = workspaces[nside]
-    else:                                                # build a workspace for the given nside if it does not exist
-        w = nmt.NmtWorkspace()                           # define workspace
-        f0 = nmt.NmtField(mask,[np.zeros(12*nside**2)])  # make a field to pass through workspace
-        w.compute_coupling_matrix(f0, f0, b)             # compute workspace
-        workspaces[nside] = w                            # assign workspace the corresponding value
-
-    
-    cl =np.zeros((map_len,cl_len))
-    for i in range(len(input_map)):                  # find Cls for input maps
-        cl[i] = Cl_func(input_map[i],mask,b,w)
-
-    return cl
-
-
 def Cl_2maps(c_map,l_map,nside,f):
     
     """
@@ -80,7 +43,7 @@ def Cl_2maps(c_map,l_map,nside,f):
 
     b = nmt.NmtBin.from_nside_linear(nside,50)   # apply binning with 50 ells per bandpower 
     cl_len = b.get_n_bands()                     # length of Cls
-    map_len = 9                                  # number of clustering and lensing maps
+    map_len = len(c_map)+len(l_map)              # number of clustering and lensing maps
     mask = np.ones(12*nside**2)                  # build mask
     mask[f:] = 0                                 # slice map using sky fraction
     
@@ -92,6 +55,7 @@ def Cl_2maps(c_map,l_map,nside,f):
         w.compute_coupling_matrix(f0, f0, b)             # compute workspace
         workspaces[nside] = w                            # assign workspace the corresponding value
 
+    i = -1   # define i in case of lensing map only
     
     cl =np.zeros((map_len,cl_len))
     for i in range(len(c_map)):                  # find Cls for clustering maps

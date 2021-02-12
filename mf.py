@@ -136,22 +136,6 @@ def calc_mf(m,thr_ct,f,is_clustering):
 
 
 # calculate MFs for both types of maps with different redshifts and galaxy biases
-def calc_mf_1map(input_maps,thr_ct,f,is_clustering):
-
-    map_len=len(input_maps)
-
-    # find MFs for fixed parameter simulation   
-    v = np.zeros((map_len,thr_ct))
-    v0 = np.zeros((map_len,thr_ct))    
-    v1 = np.zeros((map_len,thr_ct))
-    v2 = np.zeros((map_len,thr_ct))
-
-    for i,m in enumerate(input_maps):
-        v[i], v0[i], v1[i], v2[i] = calc_mf(m, thr_ct, f, is_clustering)
-
-    return v,v0,v1,v2 
-
-# calculate MFs for both types of maps with different redshifts and galaxy biases
 def calc_mf_2maps(clustering_maps,lensing_maps,thr_ct,f):
 
     map_len=len(clustering_maps)+len(lensing_maps)
@@ -161,6 +145,8 @@ def calc_mf_2maps(clustering_maps,lensing_maps,thr_ct,f):
     v0 = np.zeros((map_len,thr_ct))    
     v1 = np.zeros((map_len,thr_ct))
     v2 = np.zeros((map_len,thr_ct))
+
+    i = -1   # define i in case of lensing map only
 
     for i,m in enumerate(clustering_maps):
         v[i], v0[i], v1[i], v2[i] = calc_mf(m, thr_ct, f, is_clustering=True)
