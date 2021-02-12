@@ -115,7 +115,7 @@ def write_fields(z, lens_n_of_z, source_n_of_z):
         zmax = z_non_zero.max()
 
         # Get the mean z, which we need to work out the shift parameter
-        mean_z = np.trapz(lens_n_of_z[i] * z, z) / np.trapz(lens_n_of_z[i], z)
+        mean_z = np.trapz(source_n_of_z[i] * z, z) / np.trapz(source_n_of_z[i], z)
         # print(f"Mean z_{i} = {mean_z}")
         shift = XavierShift(mean_z)
         f.write(f"{k}     {k}   0.0    {shift}    2    {zmin}   {zmax}\n")
@@ -183,7 +183,7 @@ def write_cl(c_ell):
 
 
 def run_flask(
-    cosmo_params, nside, z, lens_n_of_z, source_n_of_z, c_ell, smoothing, source_n_total, seed
+    cosmo_params, nside, z, lens_n_of_z, source_n_of_z, c_ell, smoothing, source_n_total, seed, do_clust, do_lens
 ): #add numpy seed input
 
     np.random.seed(seed)
@@ -230,6 +230,8 @@ def run_flask(
         healpy.read_map(f"lensing-map-f{i+nbin_lens}z{i+nbin_lens}.fits", verbose=False, dtype=None).astype(np.float64)
         for i in range(nbin_source)
     ]
+    
+
 
     # add noise.  FLASK already has noise in the clustering maps, so we
     # only have to add it to the convergence maps
@@ -242,6 +244,10 @@ def run_flask(
         noise = np.random.normal(size=convergence_maps[i].size) * sigma_pixel
         convergence_maps[i] += noise
 
+
+    # lensing - n bins source=0 and clustering maps=[]
+    # clustering - conv maps = []
+ 
     # smooth the maps.  We have to convert the smoothing value from arcmin
     # to radians.  verbose=False stops it from printing out loads of stuff
     for i in range(nbin_lens):
@@ -254,7 +260,13 @@ def run_flask(
             convergence_maps[i], fwhm=np.radians(smoothing / 60), verbose=False, iter=1
         )
 
-    return clustering_maps, convergence_maps
+
+    if not do_clust:
+        return convergence_maps
+    if not do_lens:
+        return clustering_maps
+    if do_clust:
+        return clustering_maps, convergence_maps
 
 
 def simulate_maps(
@@ -268,7 +280,9 @@ def simulate_maps(
     source_n_total,
     smoothing,
     seed,
-    nmax=None,
+    nmax,
+    do_clust,
+    do_lens,
 ):
     # normalize the n(z) to the correct density
     lens_n_of_z = apply_normalization(z, lens_n_of_z, lens_n_total)
@@ -297,12 +311,14 @@ def simulate_maps(
             smoothing,
             source_n_total,
             seed,
+            do_clust,
+            do_lens
         )
 
     return maps
 
 
-def simulate_des_maps(omega_m, sigma_8, smoothing, nside, seed=29101995, nmax=None):
+def simulate_des_maps(omega_m, sigma_8, smoothing, nside, seed=29101995, nmax=None, do_clust=True, do_lens=True):
     f = fits.open(des_file)
     source_n_of_z = []
     source_n_total = []
@@ -347,6 +363,8 @@ def simulate_des_maps(omega_m, sigma_8, smoothing, nside, seed=29101995, nmax=No
     # and galaxy density.  In real analyses we would need to vary these
     # but for now we fix them.
     biases = [1.42, 1.65, 1.60, 1.92, 2.00]
+    
+        
 
     return simulate_maps(
         cosmo_params,
@@ -359,7 +377,9 @@ def simulate_des_maps(omega_m, sigma_8, smoothing, nside, seed=29101995, nmax=No
         source_n_total,
         smoothing,
         seed,
-        nmax=nmax,  
+        nmax,  
+        do_clust,
+        do_lens,
     )
 
 
@@ -376,7 +396,7 @@ def XavierShift(z):
 
 ## Added by Nisha to test galaxy bias ##
     
-def simulate_des_maps_bias(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside, seed=29101995, source_file = des_file, nmax=None):
+def simulate_des_maps_bias(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside, seed=29101995, source_file = des_file, nmax=None, do_clust=True, do_lens=True):
     f = fits.open(source_file)
     source_n_of_z = []
     source_n_total = []
@@ -433,5 +453,7 @@ def simulate_des_maps_bias(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5
         source_n_total,
         smoothing,
         seed,
-        nmax=nmax,   
+        nmax,  
+        do_clust,
+        do_lens,
     )
