@@ -4,14 +4,10 @@ import numpy as np
 # vary smoothing, nside, and analysis type
 smoothing=10
 nside=256
-<<<<<<< HEAD
-a_type = 'MF+Cl'  # 'MF+Cl','MF','Cl'
-=======
 thr_ct = 10
 sky_frac = 1
 a_type = 'MF+Cl'  # 'MF','Cl'
 m_type = 'c+l'
->>>>>>> 4f30c4e24510a45ff74ae90227068c1ba4c6dd1e
 
 # locations of MFs and Cls
 mf_path = '/disk01/ngrewal/MFs'
@@ -45,11 +41,7 @@ if a_type == 'MF':
     
     for i in range(itr):
         try:
-<<<<<<< HEAD
-           v_all[i] = np.load(os.path.join(mf_path,f'V_{i+1}_s{smoothing}_n{nside}.npy'))    # load MFs
-=======
            v_all[i] = np.load(os.path.join(mf_path,f'V_{i+1}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}.npy'))    # load MFs
->>>>>>> 4f30c4e24510a45ff74ae90227068c1ba4c6dd1e
         except:
             e += 1
                                         
@@ -61,11 +53,7 @@ if a_type == 'Cl':
     
     for i in range(itr):
         try:
-<<<<<<< HEAD
-           v_all[i] = np.load(os.path.join(cl_path,f'C_{i+1}_s{smoothing}_n{nside}.npy')).flatten()    # load Cls
-=======
            v_all[i] = np.load(os.path.join(cl_path,f'C_{i+1}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}.npy'))    # load Cls
->>>>>>> 4f30c4e24510a45ff74ae90227068c1ba4c6dd1e
         except:
             e += 1
  
