@@ -65,8 +65,6 @@ if m_type=='l':
     c = Cl_2maps([],lmaps2,nside,f)
 
 v_all = np.concatenate((v0.flatten(),v1.flatten(),v2.flatten()))
-    
-# calculate Cls
 
 # save MFs and Cls
 np.save(os.path.join(path_mf, f'V_{index}_s{smoothing_arcmin}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}'),v_all)
