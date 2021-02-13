@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import healpy as hp
 import math
 from mf import *
 from cl import *
@@ -68,5 +69,5 @@ v_all = np.concatenate((v0.flatten(),v1.flatten(),v2.flatten()))
 # calculate Cls
 
 # save MFs and Cls
-np.save(os.path.join(path_mf, f'V_{index}_s{smoothing_arcmin}_n{nside}_t{thr_ct}_f{sky_frac)_{m_type}'),v_all)
+np.save(os.path.join(path_mf, f'V_{index}_s{smoothing_arcmin}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}'),v_all)
 np.save(os.path.join(path_cl, f'C_{index}_s{smoothing_arcmin}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}'),c)
