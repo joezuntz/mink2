@@ -2,9 +2,9 @@ import os
 import numpy as np
 
 # vary smoothing, nside, and analysis type
-smoothing=5
+smoothing=10
 nside=256
-a_type = 'MF+Cl'  # 'MF','Cl'
+a_type = 'MF+Cl'  # 'MF+Cl','MF','Cl'
 
 # locations of MFs and Cls
 mf_path = '/disk01/ngrewal/MFs'
@@ -43,7 +43,6 @@ if a_type == 'MF':
     for i in range(itr):
         try:
            v_all[i] = np.load(os.path.join(mf_path,f'V_{i+1}_s{smoothing}_n{nside}.npy'))    # load MFs
-           #v_all[i] = np.concatenate((v,c.flatten()),axis=None)                       # concatenate MFs and Cls
         except:
             e += 1
     
@@ -59,8 +58,7 @@ if a_type == 'Cl':
     
     for i in range(itr):
         try:
-           v_all[i] = np.load(os.path.join(cl_path,f'C_{i+1}_s{smoothing}_n{nside}.npy'))    # load Cls
-           #v_all[i] = np.concatenate((v,c.flatten()),axis=None)                       # concatenate MFs and Cls
+           v_all[i] = np.load(os.path.join(cl_path,f'C_{i+1}_s{smoothing}_n{nside}.npy')).flatten()    # load Cls
         except:
             e += 1
     
