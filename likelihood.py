@@ -83,13 +83,13 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_t
             V = dict_v[nside,smoothing,thr_ct,sky_frac,a_type,m_type]
             cov = dict_cov[nside,smoothing,thr_ct,sky_frac,a_type,m_type]
         else:                                                                                      # load mean of fiducial simulation MF + Cl arrays (Note: assumes mean has been calculated already)
-            V = np.load(f'all_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}.npy')  # this comes from '/disk01/ngrewal/Fiducial_Simulations'
-            cov = np.cov(V.transpose())                                                            # find the covariance    
-            dict_v[nside,smoothing,thr_ct,sky_frac,a_type,m_type] = V                              # save the mean vector in the corresponding workspace
+            V = np.load(f'all_s{smoothing}_n{nside}_t{thr_ct}_f1_{a_type}_{m_type}.npy')           # this comes from '/disk01/ngrewal/Fiducial_Simulations'
+            cov = np.cov(V[:frac].transpose())                                                     # find the covariance    
+            dict_v[nside,smoothing,thr_ct,sky_frac,a_type,m_type] = V[:frac]                       # save the mean vector in the corresponding workspace
             dict_cov[nside,smoothing,thr_ct,sky_frac,a_type,m_type] = cov                          # save the covariance in the corresponding workspace                                                             
          
         i_cov = np.linalg.inv(cov)                              # find the inverse covariance  
-        output_mean = np.mean(V,axis=0)                         # find the mean of the fiducial simulation MFs and Cls
+        output_mean = np.mean(V[:frac],axis=0)                         # find the mean of the fiducial simulation MFs and Cls
            
         
         ## BLOCK COMMENT ##
@@ -189,7 +189,7 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_t
         #print('ok')
         
         if return_all:
-            return L,V,cov,output_mean,v,v0,v1,v2,c
+            return L,V[:frac],cov,output_mean,v,v0,v1,v2,c
         else:
             return L
         

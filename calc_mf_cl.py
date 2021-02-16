@@ -9,7 +9,7 @@ os.environ["PATH"]='/home/ngrewal/flask/bin:'+os.environ["PATH"]
 
 # define inputs
 nside = 256
-smoothing_arcmin = 5
+smoothing_arcmin = 10
 thr_ct = 10
 sky_frac = 1
 m_type = 'c+l' # c+l,c,l
@@ -52,20 +52,20 @@ f = int(math.floor(sky_frac*12*nside**2))
 # clustering and lensing
 if m_type=='c+l':
     v,v0,v1,v2 = calc_mf_2maps(cmaps2,lmaps2,thr_ct,f)
-    c = Cl_2maps(cmaps2,lmaps2,nside,f)
+    c = Cl_2maps(cmaps2,lmaps2,nside,f).flatten()
 
 # clustering
 if m_type=='c':
     v,v0,v1,v2 = calc_mf_2maps(cmaps2,[],thr_ct,f)
-    c = Cl_2maps(cmaps2,[],nside,f)
+    c = Cl_2maps(cmaps2,[],nside,f).flatten()
 
 # lensing
 if m_type=='l':
     v,v0,v1,v2 = calc_mf_2maps([],lmaps2,thr_ct,f)
-    c = Cl_2maps([],lmaps2,nside,f)
+    c = Cl_2maps([],lmaps2,nside,f).flatten()
 
 v_all = np.concatenate((v0.flatten(),v1.flatten(),v2.flatten()))
 
 # save MFs and Cls
-np.save(os.path.join(path_mf, f'V_{index}_s{smoothing_arcmin}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}'),v_all)
-np.save(os.path.join(path_cl, f'C_{index}_s{smoothing_arcmin}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}'),c)
+np.save(os.path.join(path_mf, f'V_{index}_s{smoothing_arcmin}_n{nside}_t{thr_ct}_f1_{m_type}'),v_all)
+np.save(os.path.join(path_cl, f'C_{index}_s{smoothing_arcmin}_n{nside}_t{thr_ct}_f1_{m_type}'),c)
