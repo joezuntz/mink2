@@ -8,7 +8,7 @@ from cl import *
 os.environ["PATH"]='/home/ngrewal/flask/bin:'+os.environ["PATH"]
 
 # define inputs
-nside = 256
+nside = 1024
 smoothing_arcmin = 10
 thr_ct = 10
 sky_frac = 1
@@ -29,19 +29,21 @@ lmaps = np.load(os.path.join(path, f'lmaps_{index}.npy'))  # lensing maps
  
 ## Simplify Maps ##
 
-# reduce pixel size
-cmaps1 = hp.ud_grade(cmaps,nside,power=-2)         
-lmaps1 = hp.ud_grade(lmaps,nside)
+# reduce pixel size - don't need to do bc im using nside=1024 in all tests
+#cmaps1 = hp.ud_grade(cmaps,nside,power=-2)         
+#lmaps1 = hp.ud_grade(lmaps,nside)
+cmaps1 = cmaps
+lmaps1 = lmaps
 
 # smooth maps
 smoothing = np.radians(smoothing_arcmin/60)      # convert arcmin to degrees
-cmaps2 = np.zeros((len(cmaps),12*nside**2))   
-lmaps2 = np.zeros((len(lmaps),12*nside**2))
+cmaps2 = np.zeros((len(cmaps1),12*nside**2))   
+lmaps2 = np.zeros((len(lmaps1),12*nside**2))
 
-for i in range(len(cmaps)):
+for i in range(len(cmaps1)):
     cmaps2[i] = hp.smoothing(cmaps1[i],fwhm=smoothing)
  
-for i in range(len(lmaps)):
+for i in range(len(lmaps1)):
     lmaps2[i] = hp.smoothing(lmaps1[i],fwhm=smoothing) 
 
     
