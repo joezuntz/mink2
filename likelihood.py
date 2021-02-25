@@ -186,7 +186,7 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_t
         L = -0.5 * diff @ i_cov @ diff
         
         # return the likelihood
-        #print('ok')
+        print(L)
         
         if return_all:
             return L,V[:frac],cov,output_mean,v,v0,v1,v2,c
