@@ -186,7 +186,7 @@ def run_flask(
     cosmo_params, nside, z, lens_n_of_z, source_n_of_z, c_ell, smoothing, source_n_total, seed, do_clust, do_lens
 ): #add numpy seed input
 
-    np.random.seed(seed)
+    rng = np.random.default_rng(seed)
     
     # First save out C_ell values to input files
     write_cl(c_ell)
@@ -195,7 +195,7 @@ def run_flask(
     write_fields(z, lens_n_of_z, source_n_of_z)
 
     # pick a random seed
-    flask_seed = np.random.randint(1000000000)
+    flask_seed = rng.integers(1000000000)
 
     # read a template version of the configuration file for FLASK
     template = open(template_file, "r").read()
@@ -241,7 +241,7 @@ def run_flask(
         sigma_pixel = sigma_e / np.sqrt(n_gal_pixel)
 
         # and add it to this map
-        noise = np.random.normal(size=convergence_maps[i].size) * sigma_pixel
+        noise = rng.normal(size=convergence_maps[i].size) * sigma_pixel
         convergence_maps[i] += noise
 
 
