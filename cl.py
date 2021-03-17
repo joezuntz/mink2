@@ -47,13 +47,13 @@ def Cl_2maps(c_map,l_map,nside,f):
     mask = np.ones(12*nside**2)                  # build mask
     mask[f:] = 0                                 # slice map using sky fraction
     
-    if nside in workspaces:                              # find the corresponding workspace
-        w = workspaces[nside]
+    if (nside,f) in workspaces:                              # find the corresponding workspace
+        w = workspaces[nside,f]
     else:                                                # build a workspace for the given nside if it does not exist
         w = nmt.NmtWorkspace()                           # define workspace
         f0 = nmt.NmtField(mask,[np.zeros(12*nside**2)])  # make a field to pass through workspace
         w.compute_coupling_matrix(f0, f0, b)             # compute workspace
-        workspaces[nside] = w                            # assign workspace the corresponding value
+        workspaces[nside,f] = w                            # assign workspace the corresponding value
 
     i = -1   # define i in case of lensing map only
     
