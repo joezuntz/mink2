@@ -150,6 +150,11 @@ def compute_cl(cosmo_params, biases, z, lens_n_of_z, source_n_of_z):
     c_ell = {"ell": ell}
     for field1, tracer1 in tracers[:]:
         for field2, tracer2 in tracers[:]:
+            
+            # excluding cross-correlations of tracers
+            if type(tracer1)!=type(tracer2):
+                print('@Nisha, you have removed tracer cross-correlations')
+                continue
             # we avoid calculating the same thing twice
             if (field2, field1) in c_ell:
                 continue
