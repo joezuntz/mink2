@@ -151,16 +151,18 @@ def compute_cl(cosmo_params, biases, z, lens_n_of_z, source_n_of_z):
     for field1, tracer1 in tracers[:]:
         for field2, tracer2 in tracers[:]:
             
-            # excluding cross-correlations of tracers
-            if type(tracer1)!=type(tracer2):
-                print('@Nisha, you have removed tracer cross-correlations')
-                continue
             # we avoid calculating the same thing twice
             if (field2, field1) in c_ell:
                 continue
             # use CCL to do the calculation
             cl = pyccl.angular_cl(cosmo, tracer1, tracer2, ell)
-            # and store it in a dictionary.
+
+            # excluding cross-correlations of tracers - added by Nisha
+            if type(tracer1)!=type(tracer2):
+                print('Nisha, you have changed tracer cross-correlations to 0')
+                cl = np.zeros((cl.shape))
+
+            # and store it in a dictionary
             c_ell[field1, field2] = cl
 
     return c_ell
