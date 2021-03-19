@@ -96,7 +96,7 @@ def likelihood_s(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, s
             V = dict_v[nside,smoothing,thr_ct,sky_frac]
             cov = dict_cov[nside,smoothing,thr_ct,sky_frac]
         else:                                                                                      # load mean of fiducial simulation MF + Cl arrays (Note: assumes mean has been calculated already)
-            V = np.load(f'all_s{smoothing}_n{nside}_t{thr_ct}_f1_Cl_c_1map.npy')           # this comes from '/disk01/ngrewal/Fiducial_Simulations'
+            V = np.load(f'all_s{smoothing}_n{nside}_t{thr_ct}_f1_Cl_l_1map.npy')           # this comes from '/disk01/ngrewal/Fiducial_Simulations'
             cov = np.cov(V[:frac].transpose())                                                     # find the covariance    
             dict_v[nside,smoothing,thr_ct,sky_frac,] = V[:frac]                       # save the mean vector in the corresponding workspace
             dict_cov[nside,smoothing,thr_ct,sky_frac] = cov                          # save the covariance in the corresponding workspace                                                             
@@ -105,7 +105,7 @@ def likelihood_s(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, s
         output_mean = np.mean(V[:frac],axis=0)                         # find the mean of the fiducial simulation MFs and Cls
            
         # power spectrum output for the first clustering map     
-        output = Cl_2maps(cmaps,[],nside,frac).flatten()
+        output = Cl_2maps([],lmaps,nside,frac).flatten()
         
         ''' FIND LIKELIHOOD '''
         diff = output - output_mean
@@ -116,12 +116,12 @@ def likelihood_s(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, s
         
         # save likelihood if specified
         if save_L:
-            prev_L = np.load('L.npy')
+            prev_L = np.load('L.npy',allow_pickle=True)
             new_L = np.concatenate((prev_L,L),axis=None)
             print('Length of likelihood array: ',new_L.shape)
             np.save('L',new_L)
 
-        return L
+        return L#,output,output_mean
         
     except:
         raise
