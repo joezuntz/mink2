@@ -24,7 +24,7 @@ dict_v = {}
 dict_cov = {}
 
 
-def likelihood_s(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, save_L=False):
+def likelihood_s(cosmo_params, smoothing=5, nside=256, thr_ct=10, sky_frac=1, m_type = 'c', save_L=False):
     
     # input needs to be an array not a dictionary
     
@@ -47,6 +47,7 @@ def likelihood_s(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, s
     nside :     The number of pixels on each side of the map; pixels in the map total to 12*nside**2. The default is 512.
     thr_ct :    Number of map thresholds; corresponds to number of convergence maps calculations are done upon. The default is 10.
     sky_frac:   The percent of sky fraction in decimal format (i.e. 5% -> 0.05). The default is 1 (100%).
+    m_type:     Clustering or lensing map.
     save_L:     Saves likelihood values in an output file if True.
 
     Returns
@@ -69,6 +70,15 @@ def likelihood_s(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, s
     b5 = 2
     
     '''
+    # priors added on 19/3/21 to keep values reasonable and stop ccl from breaking
+    if  omega_m < 0.2 or omega_m > 0.4:
+        omega_m = 0.3
+    if  sigma_8 < 0.7 or sigma_8 > 0.9:
+        sigma_8 = 0.8
+        
+    print('Cosmological parameters fixed by priors: ',np.array([omega_m,sigma_8]))
+    
+    
     omega_b = cosmo_params[0]
     omega_m = cosmo_params[1]
     h = cosmo_params[2]
@@ -92,22 +102,35 @@ def likelihood_s(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, s
         # build new clustering and lensing maps
         cmaps,lmaps = simulate_des_maps_bias(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside, nmax=1)
     
+        # get analysis values from all iterations
         if (nside,smoothing,thr_ct,sky_frac) in dict_v:                       # find the corresponding workspace
             V = dict_v[nside,smoothing,thr_ct,sky_frac]
             cov = dict_cov[nside,smoothing,thr_ct,sky_frac]
-        else:                                                                                      # load mean of fiducial simulation MF + Cl arrays (Note: assumes mean has been calculated already)
-            V = np.load(f'all_s{smoothing}_n{nside}_t{thr_ct}_f1_Cl_l_1map.npy')           # this comes from '/disk01/ngrewal/Fiducial_Simulations'
-            cov = np.cov(V[:frac].transpose())                                                     # find the covariance    
-            dict_v[nside,smoothing,thr_ct,sky_frac,] = V[:frac]                       # save the mean vector in the corresponding workspace
-            dict_cov[nside,smoothing,thr_ct,sky_frac] = cov                          # save the covariance in the corresponding workspace                                                             
+        else:                                                                       # load mean of fiducial simulation MF + Cl arrays (Note: assumes mean has been calculated already)
+            V = np.load(f'all_s{smoothing}_n{nside}_t{thr_ct}_f1_Cl_{m_type}_1map.npy')    # this comes from '/disk01/ngrewal/Fiducial_Simulations'
+            cov = np.cov(V[:frac].transpose())                                      # find the covariance    
+            dict_v[nside,smoothing,thr_ct,sky_frac,] = V[:frac]                     # save the mean vector in the corresponding workspace
+            dict_cov[nside,smoothing,thr_ct,sky_frac] = cov                         # save the covariance in the corresponding workspace                                                             
          
-        i_cov = np.linalg.inv(cov)                              # find the inverse covariance  
+        # find analysis mean
         output_mean = np.mean(V[:frac],axis=0)                         # find the mean of the fiducial simulation MFs and Cls
-           
-        # power spectrum output for the first clustering map     
-        output = Cl_2maps([],lmaps,nside,frac).flatten()
+
+        # power spectrum output for the first clustering map            
+        if m_type=='c':
+            output = Cl_2maps(cmaps,[],nside,frac).flatten()
+       
+        # power spectrum output for the first lensing map     
+        if m_type=='l':
+            output = Cl_2maps([],lmaps,nside,frac).flatten()
         
-        ''' FIND LIKELIHOOD '''
+        # Find the inverse covariance
+        #i_cov = np.linalg.inv(cov)                           # find the inverse covariance  
+        itr = len(V)                                          # find number of iterations
+        N_ = itr-1                                            # number of iterations - 1
+        p = len(V[0])                                         # number of data points (MFs, Cls, or both)
+        i_cov = ((N_)/(N_ - p - 1)) * np.linalg.inv(cov)      # find the inverse covariance with the Anderson-Hartlap correction
+
+        # FIND LIKELIHOOD      
         diff = output - output_mean
         L = -0.5 * diff @ i_cov @ diff
         
