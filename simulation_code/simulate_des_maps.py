@@ -157,10 +157,12 @@ def compute_cl(cosmo_params, biases, z, lens_n_of_z, source_n_of_z):
             # use CCL to do the calculation
             cl = pyccl.angular_cl(cosmo, tracer1, tracer2, ell)
 
+            '''
             # excluding cross-correlations of tracers - added by Nisha
             if type(tracer1)!=type(tracer2):
                 print('Nisha, you have changed tracer cross-correlations to 0')
                 cl = np.zeros((cl.shape))
+            '''
 
             # and store it in a dictionary
             c_ell[field1, field2] = cl
