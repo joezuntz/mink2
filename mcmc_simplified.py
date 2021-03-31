@@ -26,6 +26,7 @@ np.save('L',np.zeros(0))
 
 # run sampler without MPI
 sampler = emcee.EnsembleSampler(nwalkers, ndim, likelihood_s, args=[smoothing,nside,thr_ct,sky_frac,m_type,save_L])
+
 sampler.run_mcmc(start, nsteps)
 
 # save chain without using a loop

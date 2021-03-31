@@ -68,17 +68,11 @@ def likelihood_s(cosmo_params, smoothing=5, nside=256, thr_ct=10, sky_frac=1, m_
     b3 = 1.6
     b4 = 1.92
     b5 = 2
+
+    if omega_m<0.2 or omega_m>0.4 or sigma_8<0.7 or sigma_8>0.9:
+        return -math.inf
     
-    '''
-    # priors added on 19/3/21 to keep values reasonable and stop ccl from breaking
-    if  omega_m < 0.2 or omega_m > 0.4:
-        omega_m = 0.3
-    if  sigma_8 < 0.7 or sigma_8 > 0.9:
-        sigma_8 = 0.8
-        
-    print('Cosmological parameters fixed by priors: ',np.array([omega_m,sigma_8]))
-    
-    
+    '''    
     omega_b = cosmo_params[0]
     omega_m = cosmo_params[1]
     h = cosmo_params[2]
@@ -115,21 +109,23 @@ def likelihood_s(cosmo_params, smoothing=5, nside=256, thr_ct=10, sky_frac=1, m_
         # find analysis mean
         output_mean = np.mean(V[:frac],axis=0)                         # find the mean of the fiducial simulation MFs and Cls
 
-        # power spectrum output for the first clustering map            
+        # power spectrum output for the first clustering map           
         if m_type=='c':
             output = Cl_2maps(cmaps,[],nside,frac).flatten()
        
         # power spectrum output for the first lensing map     
         if m_type=='l':
             output = Cl_2maps([],lmaps,nside,frac).flatten()
+
         
         # Find the inverse covariance
-        #i_cov = np.linalg.inv(cov)                           # find the inverse covariance  
+        i_cov = np.linalg.inv(cov)                           # find the inverse covariance  
+        '''
         itr = len(V)                                          # find number of iterations
         N_ = itr-1                                            # number of iterations - 1
         p = len(V[0])                                         # number of data points (MFs, Cls, or both)
         i_cov = ((N_)/(N_ - p - 1)) * np.linalg.inv(cov)      # find the inverse covariance with the Anderson-Hartlap correction
-
+        '''
         # FIND LIKELIHOOD      
         diff = output - output_mean
         L = -0.5 * diff @ i_cov @ diff
