@@ -77,22 +77,21 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_t
     ## add try and except - check for value errors, and return -inf if needed
     
     try:
-    
-        # build new clustering and lensing maps
-        cmaps,lmaps = simulate_des_maps_bias(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside)
-    
-        if (nside,smoothing,thr_ct,sky_frac,a_type,m_type) in dict_v:                       # find the corresponding workspace
+        
+        # get mean of fiducial simulation MF + Cl arrays (Note: assumes mean has been calculated already)
+        if (nside,smoothing,thr_ct,sky_frac,a_type,m_type) in dict_v:                       # find the corresponding workspace if it exists
             V = dict_v[nside,smoothing,thr_ct,sky_frac,a_type,m_type]
             cov = dict_cov[nside,smoothing,thr_ct,sky_frac,a_type,m_type]
-        else:                                                                                      # load mean of fiducial simulation MF + Cl arrays (Note: assumes mean has been calculated already)
-            V = np.load(f'all_s{smoothing}_n{nside}_t{thr_ct}_f1_{a_type}_{m_type}.npy')           # this comes from '/disk01/ngrewal/Fiducial_Simulations'
-            cov = np.cov(V[:frac].transpose())                                                     # find the covariance    
-            dict_v[nside,smoothing,thr_ct,sky_frac,a_type,m_type] = V[:frac]                       # save the mean vector in the corresponding workspace
+        else:                                                                                     
+            V = np.load(f'all_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}.npy')  # this comes from '/disk01/ngrewal/Fiducial_Simulations'
+            cov = np.cov(V.transpose())                                                            # find the covariance    
+            dict_v[nside,smoothing,thr_ct,sky_frac,a_type,m_type] = V                              # save the mean vector in the corresponding workspace
             dict_cov[nside,smoothing,thr_ct,sky_frac,a_type,m_type] = cov                          # save the covariance in the corresponding workspace                                                             
          
-        i_cov = np.linalg.inv(cov)                              # find the inverse covariance  
-        output_mean = np.mean(V[:frac],axis=0)                         # find the mean of the fiducial simulation MFs and Cls
+        output_mean = np.mean(V,axis=0)                         # find the mean of the fiducial simulation MFs and Cls
            
+        # build new clustering and lensing maps
+        cmaps,lmaps = simulate_des_maps_bias(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside)
         
         # Minkowski functional and power spectrum analysis
         if a_type=='MF+Cl':
@@ -181,8 +180,14 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_t
             output = c.flatten()
         '''
        
-        
-        ''' FIND LIKELIHOOD '''
+        # Find the inverse covariance
+        #i_cov = np.linalg.inv(cov)                           # find the inverse covariance  
+        itr = len(V)                                          # find number of iterations
+        N_ = itr-1                                            # number of iterations - 1
+        p = len(V[0])                                         # number of data points (MFs, Cls, or both)
+        i_cov = ((N_)/(N_ - p - 1)) * np.linalg.inv(cov)      # find the inverse covariance with the Anderson-Hartlap correction
+
+        # FIND LIKELIHOOD      
         diff = output - output_mean
         L = -0.5 * diff @ i_cov @ diff
         
@@ -197,7 +202,7 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_t
             np.save('L',new_L)
         
         if return_all:
-            return L,V[:frac],cov,output_mean,v,v0,v1,v2,c
+            return L,V,cov,output_mean,v,v0,v1,v2,c
         else:
             return L
         
