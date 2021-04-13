@@ -102,6 +102,7 @@ def likelihood_s(cosmo_params, smoothing=5, nside=256, thr_ct=10, sky_frac=1, m_
         if (nside,smoothing,thr_ct,sky_frac) in dict_v:                             # find the corresponding workspace
             V = dict_v[nside,smoothing,thr_ct,sky_frac]
             cov = dict_cov[nside,smoothing,thr_ct,sky_frac]
+<<<<<<< HEAD
         else:                                                                       # load mean of fiducial simulation MF + Cl arrays (Note: assumes mean has been calculated already)
             V = np.load(f'all_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_Cl_{m_type}_1map.npy')    # this comes from '/disk01/ngrewal/Fiducial_Simulations'
             cov = np.cov(V.transpose())                                             # find the covariance    
@@ -110,6 +111,16 @@ def likelihood_s(cosmo_params, smoothing=5, nside=256, thr_ct=10, sky_frac=1, m_
          
         # find analysis mean
         output_mean = np.mean(V,axis=0)                                              # find the mean of the fiducial simulation MFs and Cls
+=======
+        else:                                                                                     # load mean of fiducial simulation MF + Cl arrays (Note: assumes mean has been calculated already)
+            V = np.load(f'all_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_Cl_{m_type}_1map.npy')  # this comes from '/disk01/ngrewal/Fiducial_Simulations'
+            cov = np.cov(V.transpose())                                                           # find the covariance    
+            dict_v[nside,smoothing,thr_ct,sky_frac,] = V                                          # save the mean vector in the corresponding workspace
+            dict_cov[nside,smoothing,thr_ct,sky_frac] = cov                                       # save the covariance in the corresponding workspace                                                             
+         
+        # find analysis mean
+        output_mean = np.mean(V,axis=0)                         # find the mean of the fiducial simulation MFs and Cls
+>>>>>>> 4fec179cafa5aae62aa5b359417d23ec19ea6ceb
 
         # power spectrum output for the first clustering map           
         if m_type=='c':
@@ -121,13 +132,20 @@ def likelihood_s(cosmo_params, smoothing=5, nside=256, thr_ct=10, sky_frac=1, m_
 
         
         # Find the inverse covariance
+<<<<<<< HEAD
         
+=======
+>>>>>>> 4fec179cafa5aae62aa5b359417d23ec19ea6ceb
         #i_cov = np.linalg.inv(cov)                           # find the inverse covariance  
         itr = len(V)                                          # find number of iterations
         N_ = itr-1                                            # number of iterations - 1
         p = len(V[0])                                         # number of data points (MFs, Cls, or both)
         i_cov = ((N_)/(N_ - p - 1)) * np.linalg.inv(cov)      # find the inverse covariance with the Anderson-Hartlap correction
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 4fec179cafa5aae62aa5b359417d23ec19ea6ceb
         # FIND LIKELIHOOD      
         diff = output - output_mean
         L = -0.5 * diff @ i_cov @ diff
