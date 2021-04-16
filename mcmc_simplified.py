@@ -14,7 +14,7 @@ from likelihood_simplified import *
 os.environ["PATH"]='/home/ngrewal/flask/flask/bin:'+os.environ["PATH"]
 
 # inputs (there are default values in the likelihood function)
-smoothing, nside, thr_ct, sky_frac,m_type, save_L = 5,256,10,1,'c',True
+smoothing, nside, thr_ct, sky_frac,m_type, save_L = 5,256,10,1,'c+l',False
 
 # initialise zeus MCMC
 cosmo_params = np.array([0.3,0.8])
@@ -22,7 +22,8 @@ nsteps, nwalkers, ndim, nchains = 1000, 4*len(cosmo_params), len(cosmo_params), 
 start = np.random.randn(nwalkers, ndim)*cosmo_params*0.000001 + np.tile(cosmo_params,(nwalkers,1))
 
 # save empty likelihood function
-np.save('L',np.zeros(0))
+if save_L==True:
+    np.save('L',np.zeros(0))
 
 # run sampler without MPI
 sampler = emcee.EnsembleSampler(nwalkers, ndim, likelihood_s, args=[smoothing,nside,thr_ct,sky_frac,m_type,save_L])

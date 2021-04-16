@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --time=10:00:00
+#SBATCH --time=100:00:00
 #SBATCH --array=1-1000
 #SBATCH --cpus-per-task=8
 #SBATCH --exclude=worker[001-024],worker[026-063],worker075
@@ -9,4 +9,4 @@
 
 export LD_LIBRARY_PATH=${CONDA_PREFIX}/lib:${LD_LIBRARY_PATH}
 export OMP_NUM_THREADS=8
-srun -u -n1 python calc_mf_cl.py
+time srun -u -n1 python calc_mf_cl.py

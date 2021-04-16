@@ -9,7 +9,7 @@ os.environ["PATH"]='/home/ngrewal/flask/bin:'+os.environ["PATH"]
 
 # define inputs
 nside = 1024
-smoothing_arcmin = 10
+smoothing_arcmin = 5
 thr_ct = 10
 sky_frac = 1
 m_type = 'c+l' # c+l,c,l
@@ -69,5 +69,5 @@ if m_type=='l':
 v_all = np.concatenate((v0.flatten(),v1.flatten(),v2.flatten()))
 
 # save MFs and Cls
-np.save(os.path.join(path_mf, f'V_{index}_s{smoothing_arcmin}_n{nside}_t{thr_ct}_f1_{m_type}'),v_all)
-np.save(os.path.join(path_cl, f'C_{index}_s{smoothing_arcmin}_n{nside}_t{thr_ct}_f1_{m_type}'),c)
+np.save(os.path.join(path_mf, f'V_{index}_s{smoothing_arcmin}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}'),v_all)
+np.save(os.path.join(path_cl, f'C_{index}_s{smoothing_arcmin}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}'),c)
