@@ -116,7 +116,10 @@ def likelihood_s(cosmo_params, smoothing=5, nside=256, thr_ct=10, sky_frac=1, m_
         # power spectrum output for the first lensing map     
         if m_type=='l':
             output = Cl_2maps([],lmaps,nside,frac).flatten()
-        
+
+        if m_type=='c+l':
+            output = Cl_2maps(cmaps,lmaps,nside,frac).flatten()
+            
         # Find the inverse covariance
         #i_cov = np.linalg.inv(cov)                           # find the inverse covariance  
         itr = len(V)                                          # find number of iterations
