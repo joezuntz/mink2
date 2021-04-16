@@ -45,7 +45,7 @@ def Cl_2maps(c_map,l_map,nside,f):
     cl_len = b.get_n_bands()                     # length of Cls
     map_len = len(c_map)+len(l_map)              # number of clustering and lensing maps
     mask = np.ones(12*nside**2)                  # build mask
-    mask[:f] = 0                                 # slice map using sky fraction
+    mask[f:] = 0                                 # slice map using sky fraction
     
     if (nside,f) in workspaces:                              # find the corresponding workspace
         w = workspaces[nside,f]
