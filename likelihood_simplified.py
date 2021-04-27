@@ -24,7 +24,7 @@ dict_v = {}
 dict_cov = {}
 
 
-def likelihood_s(cosmo_params, smoothing=5, nside=256, thr_ct=10, sky_frac=1, m_type = 'c', save_L=False):
+def likelihood_s(cosmo_params, smoothing=5, nside=256, thr_ct=10, sky_frac=1, a_type = 'MF', m_type = 'c', save_L=False):
     
     '''
     Parameters
@@ -68,7 +68,7 @@ def likelihood_s(cosmo_params, smoothing=5, nside=256, thr_ct=10, sky_frac=1, m_
     b5 = 2
 
     # filter out bad values
-    if any(x<0 for x in cosmo_params) or omega_m<0.2 or omega_m>0.4 or sigma_8<0.7 or sigma_8>0.9:
+    if any(x<0 for x in cosmo_params) or omega_m<0.1 or omega_m>0.6 or sigma_8<0.3 or sigma_8>1.2:
         print('Likelihood: -inf')
         return -math.inf
     
@@ -97,29 +97,72 @@ def likelihood_s(cosmo_params, smoothing=5, nside=256, thr_ct=10, sky_frac=1, m_
         cmaps,lmaps = simulate_des_maps_bias(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside, nmax=1)
     
         # get analysis values from all iterations
-        if (nside,smoothing,thr_ct,sky_frac) in dict_v:                             # find the corresponding workspace
-            V = dict_v[nside,smoothing,thr_ct,sky_frac]
-            cov = dict_cov[nside,smoothing,thr_ct,sky_frac]
+        if (nside,smoothing,thr_ct,sky_frac,a_type,m_type) in dict_v:                             # find the corresponding workspace
+            V = dict_v[nside,smoothing,thr_ct,sky_frac,a_type,m_type]
+            cov = dict_cov[nside,smoothing,thr_ct,sky_frac,a_type,m_type]
         else:                                                                                     # load mean of fiducial simulation MF + Cl arrays (Note: assumes mean has been calculated already)
-            V = np.load(f'all_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_Cl_{m_type}_1map.npy')  # this comes from '/disk01/ngrewal/Fiducial_Simulations'
+            V = np.load(f'all_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_1map.npy')  # this comes from '/disk01/ngrewal/Fiducial_Simulations'
             cov = np.cov(V.transpose())                                                           # find the covariance    
-            dict_v[nside,smoothing,thr_ct,sky_frac] = V                                          # save the mean vector in the corresponding workspace
-            dict_cov[nside,smoothing,thr_ct,sky_frac] = cov                                       # save the covariance in the corresponding workspace                                                             
+            dict_v[nside,smoothing,thr_ct,sky_frac,a_type,m_type] = V                                          # save the mean vector in the corresponding workspace
+            dict_cov[nside,smoothing,thr_ct,sky_frac,a_type,m_type] = cov                                       # save the covariance in the corresponding workspace                                                             
          
         # find analysis mean
         output_mean = np.mean(V,axis=0)                         # find the mean of the fiducial simulation MFs and Cls
 
-        # power spectrum output for the first clustering map           
-        if m_type=='c':
-            output = Cl_2maps(cmaps,[],nside,frac).flatten()
-       
-        # power spectrum output for the first lensing map     
-        if m_type=='l':
-            output = Cl_2maps([],lmaps,nside,frac).flatten()
+        # MF analysis
+        if a_type=='MF':
 
-        if m_type=='c+l':
-            output = Cl_2maps(cmaps,lmaps,nside,frac).flatten()
-            
+            # MF output for the first clustering map           
+            if m_type=='c':
+                v,v0,v1,v2 = calc_mf_2maps(cmaps,[],thr_ct,frac)
+       
+            # MF output for the first lensing map     
+            if m_type=='l':
+                v,v0,v1,v2 = calc_mf_2maps([],lmaps,thr_ct,frac)
+
+            # MF output for first lensing map and first clustering map
+            if m_type=='c+l':
+                v,v0,v1,v2 = calc_mf_2maps(cmaps,lmaps,thr_ct,frac)
+
+            output = np.concatenate((v0.flatten(),v1.flatten(),v2.flatten()))
+
+        # power spectrum analysis (C_ell)
+        if a_type=='Cl':
+
+            # power spectrum output for the first clustering map           
+            if m_type=='c':
+                output = Cl_2maps(cmaps,[],nside,frac).flatten()
+       
+            # power spectrum output for the first lensing map     
+            if m_type=='l':
+                output = Cl_2maps([],lmaps,nside,frac).flatten()
+
+            # power spectrum output for first clustering and first lensing map
+            if m_type=='c+l':
+                output = Cl_2maps(cmaps,lmaps,nside,frac).flatten()
+
+
+        # MF and Cl joint analysis
+        if a_type=='MF+Cl':
+
+            # MF output for the first clustering map           
+            if m_type=='c':
+                v,v0,v1,v2 = calc_mf_2maps(cmaps,[],thr_ct,frac)
+                c = Cl_2maps(cmaps,[],nside,frac).flatten()
+       
+            # MF output for the first lensing map     
+            if m_type=='l':
+                v,v0,v1,v2 = calc_mf_2maps([],lmaps,thr_ct,frac)
+                c = Cl_2maps([],lmaps,nside,frac).flatten()
+
+            # MF output for first lensing map and first clustering map
+            if m_type=='c+l':
+                v,v0,v1,v2 = calc_mf_2maps(cmaps,lmaps,thr_ct,frac)
+                c = Cl_2maps(cmaps,lmaps,nside,frac).flatten()
+
+            output = np.concatenate((v0.flatten(),v1.flatten(),v2.flatten(),c.flatten()))
+
+                
         # Find the inverse covariance
         #i_cov = np.linalg.inv(cov)                           # find the inverse covariance  
         itr = len(V)                                          # find number of iterations
