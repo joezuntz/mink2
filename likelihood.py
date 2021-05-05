@@ -23,7 +23,7 @@ dict_v = {}
 dict_cov = {}
 
 
-def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_type='MF+Cl', m_type='c+l', return_all=False, save_L=False):
+def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_type='MF', m_type='l', return_all=False, save_L=False):
     
     # input needs to be an array not a dictionary
     
@@ -73,6 +73,10 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_t
     # calculate sky fraction
     frac = int(math.floor(sky_frac*12*nside**2))
 
+    # cosmological parameter priors
+    if any(x<0 for x in cosmo_params) or omega_b<0.047 or omega_b>0.049 or omega_m<0.1 or omega_m>0.6 or h<0.5 or h>0.9 or n_s<0.9 or n_s>1.1 or sigma_8<0.3 or sigma_8>1.2:
+        print('Likelihood: inf')
+        return -math.inf
     
     ## add try and except - check for value errors, and return -inf if needed
     
@@ -210,7 +214,7 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_t
         
     except:
         raise
-        #print('likelihood error')
+        Print('Likelihood: -inf')
         return -math.inf
 
 
