@@ -23,7 +23,7 @@ dict_v = {}
 dict_cov = {}
 
 
-def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_type='MF', m_type='l', return_all=False, save_L=False):
+def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_type='MF', m_type='l', save_L = False, return_all=False):
     
     # input needs to be an array not a dictionary
     
