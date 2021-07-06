@@ -5,17 +5,11 @@ Created on Tue Dec 15 10:36:00 2020
 
 @author: ngrewal
 """
-                                                                                                                                                            
-import os
+
 import numpy as np
 import math
-from mf import calc_mf_2maps
-from cl import Cl_2maps
-import sys
-sys.path.append("./simulation_code/")
-from simulate_des_maps import simulate_des_maps_bias
 
-os.environ["PATH"]='/home/ngrewal/flask/bin:'+os.environ["PATH"]
+from observables import observables
 
 
 # define an empty dictionary for mean and covariance of each nside and smoothing combo
@@ -92,98 +86,8 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_t
             dict_v[nside,smoothing,thr_ct,sky_frac,a_type,m_type] = V                              # save the mean vector in the corresponding workspace
             dict_cov[nside,smoothing,thr_ct,sky_frac,a_type,m_type] = cov                          # save the covariance in the corresponding workspace                                                             
          
-        output_mean = np.mean(V,axis=0)                         # find the mean of the fiducial simulation MFs and Cls
-           
-        # build new clustering and lensing maps
-        cmaps,lmaps = simulate_des_maps_bias(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside)
-        
-        # Minkowski functional and power spectrum analysis
-        if a_type=='MF+Cl':
-                     
-            # clustering and lensing maps  
-            if m_type=='c+l':
-                v,v0,v1,v2 = calc_mf_2maps(cmaps,lmaps,thr_ct,frac)     # calculate MFs
-                c = Cl_2maps(cmaps,lmaps,nside,frac)                    # calculate Cls
-           
-             # clustering only
-            elif m_type=='c':
-                v,v0,v1,v2 = calc_mf_2maps(cmaps,[],thr_ct,frac)        # calculate MFs
-                c = Cl_2maps(cmaps,[],nside,frac)                           # calculate Cls
-                
-             # lensing only
-            elif m_type=='l':
-                v,v0,v1,v2 = calc_mf_2maps([],lmaps,thr_ct,frac)        # calculate MFs
-                c = Cl_2maps([],lmaps,nside,frac)                           # calculate Cls
-            
-            # concatenate MFs and Cls
-            output = np.concatenate((v0.flatten(),v1.flatten(),v2.flatten(),c.flatten()))
-        
-         # Minkowski functional analysis only
-        if a_type=='MF':
-            
-             # clustering and lensing maps
-             if m_type=='c+l':                                                                                                                                                                                   
-                 v,v0,v1,v2 = calc_mf_2maps(cmaps,lmaps,thr_ct,frac)
-            
-             # clustering only
-             elif m_type=='c':
-                 v,v0,v1,v2 = calc_mf_2maps(cmaps,[],thr_ct,frac)
-                
-             # lensing only
-             elif m_type=='l':
-                 v,v0,v1,v2 = calc_mf_2maps([],lmaps,thr_ct,frac) 
-                 
-             output = np.concatenate((v0.flatten(),v1.flatten(),v2.flatten()))
+        fiducial_mean = np.mean(V,axis=0)                         # find the mean of the fiducial simulation MFs and Cls
          
-        # power spectrum (Cl) analysis only
-        if a_type=='Cl':
-
-            # clustering and lensing maps  
-            if m_type=='c+l':                                                                                                                                                                                  
-                output = Cl_2maps(cmaps,lmaps,nside,frac).flatten()
-            
-            # clustering only
-            elif m_type=='c':
-                output = Cl_2maps(cmaps,[],nside,frac).flatten()
-            
-            # lensing only
-            elif m_type=='l':
-                output = Cl_2maps([],lmaps,nside,frac).flatten()
-        
-        
-        
-        '''another try - less code, but takes more time
-        
-        # TYPES OF MAPS 
-        # clustering and lensing maps  
-        if m_type=='c+l':
-            v,v0,v1,v2 = calc_mf_2maps(cmaps,lmaps,thr_ct,frac)     # calculate MFs
-            c = Cl_2maps(cmaps,lmaps,nside,frac)                    # calculate Cls
-        
-        # clustering only
-        elif m_type=='c':
-            v,v0,v1,v2 = calc_mf_2maps(cmaps,[],thr_ct,frac)        # calculate MFs
-            c = Cl_2maps(cmaps,[],nside,frac)                       # calculate Cls
-            
-        # lensing only
-        elif m_type=='l':
-            v,v0,v1,v2 = calc_mf_2maps([],lmaps,thr_ct,frac)        # calculate MFs
-            c = Cl_2maps([],lmaps,nside,frac)                       # calculate Cls
-    
-        # TYPES OF ANALYSIS 
-        # Minkowski functional and power spectrum analysis
-        if a_type=='MF+Cl':
-            output = np.concatenate((v0.flatten(),v1.flatten(),v2.flatten(),c.flatten()))
-        
-        # Minkowski functional analysis only
-        if a_type=='MF':
-            output = np.concatenate((v0.flatten(),v1.flatten(),v2.flatten()))
-        
-        # power spectrum (Cl) analysis only
-        if a_type=='Cl':
-            output = c.flatten()
-        '''
-       
         # Find the inverse covariance
         #i_cov = np.linalg.inv(cov)                           # find the inverse covariance  
         itr = len(V)                                          # find number of iterations
@@ -191,8 +95,11 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_t
         p = len(V[0])                                         # number of data points (MFs, Cls, or both)
         i_cov = ((N_)/(N_ - p - 1)) * np.linalg.inv(cov)      # find the inverse covariance with the Anderson-Hartlap correction
 
+        # get MF and/or Cl observables given input parameters
+        output = observables(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside, thr_ct, frac, a_type, m_type)
+
         # FIND LIKELIHOOD      
-        diff = output - output_mean
+        diff = output - fiducial_mean
         L = -0.5 * diff @ i_cov @ diff
         
         # return the likelihood
@@ -206,45 +113,13 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_t
             np.save('L',new_L)
         
         if return_all:
-            return L,V,cov,output_mean,v,v0,v1,v2,c
+            return L,V,cov,fiducial_mean,output
         else:
             return L
         
-
-        
     except:
         raise
-        Print('Likelihood: -inf')
+        print('Likelihood: -inf')
         return -math.inf
 
 
-
-    ''' non dictionary, non try code
-    # build new clustering and lensing maps
-    cmaps,lmaps = simulate_des_maps_bias(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside)
-    
-    # load mean of fiducial simulation MF + Cl arrays (Note: assumes mean has been calculated already)
-    V = np.load(f'vc_all_s{smoothing}_n{nside}.npy')   # this comes from '/disk01/ngrewal/Fiducial_Simulations'
-    cov = np.cov(V.transpose())                        # find the covariance    
-    i_cov = np.linalg.inv(cov)                         # find the inverse covariance  
-    vc_mean = np.mean(V,axis=0)                        # find the mean of the fiducial simulation MFs and Cls                                                                                     
-                             
-    # calculate MFs                                                                                                                                                                                     
-    v,v0,v1,v2 = calc_mf_2maps(cmaps,lmaps,thr_ct)
-    v_all = np.concatenate((v0.flatten(),v1.flatten(),v2.flatten()))
-    
-    # calculate Cls                                                                                                                                                                                     
-    c = Cl_2maps(cmaps,lmaps,nside).flatten()
-    
-    # concatenate MFs and Cls
-    vc = np.concatenate((v_all,c))
-    
-    # find the likelihood                                                     
-    diff = vc - vc_mean
-    L = -0.5 * diff @ i_cov @ diff
-    
-    # return the likelihood
-    return L
-
-    '''
-        
