@@ -41,7 +41,8 @@ def Cl_2maps(c_map,l_map,nside,f):
     cl : concatenated array of Cls for all 9 clustering and lensing maps
     """
 
-    b = nmt.NmtBin.from_nside_linear(nside,50)   # apply binning with 50 ells per bandpower 
+    #b = nmt.NmtBin.from_nside_linear(nside,50)   # apply binning with 50 ells per bandpower 
+    b = nmt.NmtBin.from_lmax_linear(lmax=int(1.5*nside),nlb=50)  # truncate values above a given threshold
     cl_len = b.get_n_bands()                     # length of Cls
     map_len = len(c_map)+len(l_map)              # number of clustering and lensing maps
     mask = np.ones(12*nside**2)                  # build mask
