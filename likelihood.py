@@ -63,9 +63,7 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_t
     b3 = cosmo_params[7]
     b4 = cosmo_params[8]
     b5 = cosmo_params[9]
-    
-    # calculate sky fraction
-    frac = int(math.floor(sky_frac*12*nside**2))
+
 
     # cosmological parameter priors
     if any(x<0 for x in cosmo_params) or omega_b<0.047 or omega_b>0.049 or omega_m<0.1 or omega_m>0.6 or h<0.5 or h>0.9 or n_s<0.9 or n_s>1.1 or sigma_8<0.3 or sigma_8>1.2:
@@ -96,7 +94,7 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_t
         i_cov = ((N_)/(N_ - p - 1)) * np.linalg.inv(cov)      # find the inverse covariance with the Anderson-Hartlap correction
 
         # get MF and/or Cl observables given input parameters
-        output = observables(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside, thr_ct, frac, a_type, m_type)
+        output = observables(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside, thr_ct, sky_frac, a_type, m_type)
 
         # FIND LIKELIHOOD      
         diff = output - fiducial_mean

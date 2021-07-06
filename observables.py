@@ -17,10 +17,13 @@ os.environ["PATH"]='/home/ngrewal/flask/bin:'+os.environ["PATH"]
 
 
 
-def observables(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside, thr_ct, frac, a_type, m_type):
+def observables(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside, thr_ct, sky_frac, a_type, m_type):
 
     # build new clustering and lensing maps
     cmaps,lmaps = simulate_des_maps_bias(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside)
+    
+    # calculate sky fraction
+    frac = int(math.floor(sky_frac*12*nside**2))
     
     # power spectrum (Cl) analysis only
     if a_type=='Cl':
