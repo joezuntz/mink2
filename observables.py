@@ -6,6 +6,7 @@ Created on Tue Jul  6 09:47:48 2021
 @author: ngrewal
 """
 import numpy as np
+import math
 import os
 from mf import calc_mf_2maps
 from cl import Cl_2maps
@@ -85,7 +86,7 @@ def observables(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing
         
         
         
-        '''another try - less code, but takes more time
+'''another try - less code, but takes more time
         
         # TYPES OF MAPS 
         # clustering and lensing maps  
