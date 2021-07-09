@@ -8,18 +8,44 @@ smoothing=5
 nside=256
 thr_ct = 10
 sky_frac = 1
-a_type = 'Cl'  # 'MF+Cl','MF','Cl'
-m_type = 'c+l'   # 'c+l','c','l'
+a_type = 'Cl'
+m_type = 'l'
 
 # locations of MFs and Cls
 mf_path = '/disk01/ngrewal/MFs'
 cl_path = '/disk01/ngrewal/Cls'
 
 # structure variables
-itr = 1000                                                                            # total simulations instructed in run_sim.py (not all of these will run bc of cuillin hardware failures)
+itr = 1000                                                          
 
+# make a list of arrays
+if a_type == 'MF':
+    
+    v = [np.load(os.path.join(mf_path,f'V_{i+1}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}.npy')) for i in range(itr)]
+
+if a_type == 'Cl':
+                                         
+    v = [np.load(os.path.join(cl_path,f'C_{i+1}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}.npy')) for i in range(itr)]
+
+if a_type =='MF+Cl':
+
+    v = [np.concatenate((np.load(os.path.join(mf_path,f'V_{i+1}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}.npy')),np.load(os.path.join(cl_path,f'C_{i+1}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}.npy'))),axis=None) for i in range(itr)]                                                              # concatenate MFs and Cls 
+
+
+print(len(v))
+    
+# stack the arrays                                                           
+z = np.vstack(v)
+print(z.shape)
+
+np.save(f'all_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}',z)   # save concatenated array in current directory
+
+
+
+'''
 # get length of Cls - make sure the ells per bandpower match the number in cl.py
-b = nmt.NmtBin.from_nside_linear(nside,50)
+#b = nmt.NmtBin.from_nside_linear(nside,50)
+b = nmt.NmtBin.from_lmax_linear(lmax=int(1.5*nside),nlb=50)
 cl_len = b.get_n_bands()
 
 # get number of maps
@@ -34,7 +60,7 @@ if m_type== 'c+l':
 e = 0                   # count number of errors
 
 
-''' MF + Cl analysis '''
+# MF + Cl analysis 
 if a_type == 'MF+Cl':
     map_count = np.int(map_num*(thr_ct*3 + cl_len))                                                # count of maps * threshold count * 3MFs + 9 maps * Cls
     v_all = np.zeros((itr,map_count))   
@@ -48,7 +74,7 @@ if a_type == 'MF+Cl':
             e += 1
     
 
-''' MF only '''
+# MF only 
 if a_type == 'MF':
     map_count = np.int(map_num*(thr_ct*3))                                                         # count of maps * threshold count * 3MFs 
     v_all = np.zeros((itr,map_count))   
@@ -60,7 +86,7 @@ if a_type == 'MF':
             e += 1
                                         
 
-''' Cl only '''
+# Cl only
 if a_type == 'Cl':
     map_count = np.int(map_num*cl_len)                                                           # count of maps * Cls
     v_all = np.zeros((itr,map_count))   
@@ -78,3 +104,4 @@ np.save(f'all_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}',V) 
 
 # show number of simulations that failed
 print('errors=',e)                               
+'''
