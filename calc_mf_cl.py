@@ -23,10 +23,10 @@ index = int(os.environ['SLURM_ARRAY_TASK_ID'])
 omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5 = 0.048,0.3,0.7,0.96,0.8,1.42,1.65,1.6,1.92,2
 
 # calculate MFs
-v_all = observables(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside, thr_ct, sky_frac, a_type = 'MF', m_type = m_type)
+v_all = observables(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside, thr_ct, sky_frac, a_type = 'MF', m_type = m_type, seed = index)
     
 # calculate Cls
-c = observables(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside, thr_ct, sky_frac, a_type = 'Cl', m_type = m_type)
+c = observables(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside, thr_ct, sky_frac, a_type = 'Cl', m_type = m_type, seed = index)
 
 # save MFs and Cls
 np.save(os.path.join(path_mf, f'V_{index}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}'),v_all)

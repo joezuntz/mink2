@@ -83,7 +83,7 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_t
             cov = np.cov(V.transpose())                                                            # find the covariance    
             dict_v[nside,smoothing,thr_ct,sky_frac,a_type,m_type] = V                              # save the mean vector in the corresponding workspace
             dict_cov[nside,smoothing,thr_ct,sky_frac,a_type,m_type] = cov                          # save the covariance in the corresponding workspace                                                             
-         
+        print(cov)
         fiducial_mean = np.mean(V,axis=0)                         # find the mean of the fiducial simulation MFs and Cls
          
         # Find the inverse covariance
@@ -94,7 +94,7 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_t
         i_cov = ((N_)/(N_ - p - 1)) * np.linalg.inv(cov)      # find the inverse covariance with the Anderson-Hartlap correction
 
         # get MF and/or Cl observables given input parameters
-        output = observables(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside, thr_ct, sky_frac, a_type, m_type)
+        output = observables(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside, thr_ct, sky_frac, a_type, m_type, seed = 10291995)
 
         # FIND LIKELIHOOD      
         diff = output - fiducial_mean
@@ -104,11 +104,11 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_t
         print('Likelihood: ',L)
         
         # save likelihood if specified
-        if save_L:
+        '''if save_L:
             prev_L = np.load('L.npy')
             new_L = np.concatenate((prev_L,L),axis=None)
             print('Length of likelihood array: ',new_L.shape)
-            np.save('L',new_L)
+            np.save('L',new_L)'''
         
         if return_all:
             return L,V,cov,fiducial_mean,output
@@ -116,8 +116,8 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_t
             return L
         
     except:
-        raise
         print('Likelihood: -inf')
+        raise
         return -math.inf
 
 
