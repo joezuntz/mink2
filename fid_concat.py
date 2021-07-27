@@ -5,10 +5,10 @@ import pymaster as nmt
 
 # vary smoothing, nside, and analysis type
 smoothing=5
-nside=256
+nside=1024
 thr_ct = 10
 sky_frac = 1
-a_type = 'Cl'
+a_type = 'MF+Cl'
 m_type = 'l'
 
 # locations of MFs and Cls

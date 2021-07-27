@@ -83,7 +83,6 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_t
             cov = np.cov(V.transpose())                                                            # find the covariance    
             dict_v[nside,smoothing,thr_ct,sky_frac,a_type,m_type] = V                              # save the mean vector in the corresponding workspace
             dict_cov[nside,smoothing,thr_ct,sky_frac,a_type,m_type] = cov                          # save the covariance in the corresponding workspace                                                             
-        print(cov)
         fiducial_mean = np.mean(V,axis=0)                         # find the mean of the fiducial simulation MFs and Cls
          
         # Find the inverse covariance
@@ -104,11 +103,13 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_t
         print('Likelihood: ',L)
         
         # save likelihood if specified
-        '''if save_L:
+        if save_L:
+            print(L.shape)
             prev_L = np.load('L.npy')
-            new_L = np.concatenate((prev_L,L),axis=None)
+            print('loaded')
+            new_L = np.append((prev_L,L),axis=None)
             print('Length of likelihood array: ',new_L.shape)
-            np.save('L',new_L)'''
+            np.save('L',new_L)
         
         if return_all:
             return L,V,cov,fiducial_mean,output

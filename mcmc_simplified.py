@@ -10,41 +10,50 @@ import sys
 sys.path.append("./simulation_code/")
 from simulate_des_maps import *
 
-from likelihood_simplified import * 
+from likelihood import * 
 
 os.environ["PATH"]='/home/ngrewal/flask/flask/bin:'+os.environ["PATH"]
 
 # inputs (there are default values in the likelihood function)
-smoothing, nside, thr_ct, sky_frac, a_type, m_type, save_L = sys.argv[1],sys.argv[2],sys.argv[3],sys.argv[4],sys.argv[5],sys.argv[6],False
-#smoothing, nside, thr_ct, sky_frac, a_type, m_type, save_L = 5,256,10,1,'Cl','l',False
+smoothing, nside, thr_ct, sky_frac, a_type, m_type, save_L = int(sys.argv[1]),int(sys.argv[2]),int(sys.argv[3]),int(sys.argv[4]),sys.argv[5],sys.argv[6],True
+# 5,256,10,1,'Cl','l',False
 
 # initialise MCMC
 cosmo_params = np.array([0.3,0.8])
-nsteps, nwalkers, ndim, nchains = 10, 2*len(cosmo_params), len(cosmo_params), 1
+nsteps, nwalkers, ndim, nchains = 10, 10*len(cosmo_params), len(cosmo_params), 1
    
 # save empty likelihood function
 if save_L==True:
+    print(save_L)
     np.save('L',np.zeros(0))
 
+# use observables and likelihood function with only omega_m and sigma_8 and all other parameters fixed
+def likelihood_s(cosmo_params,smoothing,nside,thr_ct,sky_frac,a_type,m_type,save_L):
+    cms = [0.048,cosmo_params[0],0.7,0.96,cosmo_params[1],1.42,1.65,1.6,1.92,2]
+    return likelihood(cms,smoothing,nside,thr_ct,sky_frac,a_type,m_type,save_L)
+
 # check if sampler exists
-if os.path.exists(os.path.join(os.getcwd(),f'mcmc_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_1map.p')):
+if os.path.exists(os.path.join(os.getcwd(),f'mcmc_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_2params.p')):
     start = None
-    sampler = pickle.load(open(f'mcmc_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_1map.p',"rb"))
+    sampler = pickle.load(open(f'mcmc_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_2params.p',"rb"))
 else:
     # set a random starting position
-    start = np.random.randn(nwalkers, ndim)*cosmo_params*0.000001 + np.tile(cosmo_params,(nwalkers,1))
+    start = np.random.randn(nwalkers, ndim)*cosmo_params*0.01 + np.tile(cosmo_params,(nwalkers,1))
     # build sampler
     sampler = emcee.EnsembleSampler(nwalkers, ndim, likelihood_s, args=[smoothing,nside,thr_ct,sky_frac,a_type,m_type,save_L])
 
-# run sampler
-sampler.run_mcmc(start, nsteps)
 
-# save sampler
-pickle.dump(sampler,open(f'mcmc_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_1map.p',"wb"))
+# this will stop when the time runs out
+while True:
+    # run sampler
+    sampler.run_mcmc(start, nsteps)
 
-# save chain 
-chain = sampler.get_chain(flat=False) #3D
-np.save(f'chain_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_1map',chain)
+    # save sampler
+    pickle.dump(sampler,open(f'mcmc_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_2params.p',"wb"))
+
+    # save chain 
+    chain = sampler.get_chain(flat=False) #3D
+    np.save(f'chain_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_2params',chain)
 
 
 

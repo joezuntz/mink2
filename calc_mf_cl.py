@@ -9,8 +9,11 @@ os.environ["PATH"]='/home/ngrewal/flask/bin:'+os.environ["PATH"]
 nside = int(sys.argv[1])#1024
 smoothing = int(sys.argv[2])
 thr_ct = int(sys.argv[3])
-sky_frac = int(sys.argv[4])
+sky_frac = float(sys.argv[4])
 m_type = sys.argv[5] #'c+l' 
+
+if sky_frac==1:
+    sky_frac = int(sky_frac)
 
 # path for given inputs
 path_mf = '/disk01/ngrewal/MFs'
