@@ -166,7 +166,7 @@ def compute_cl(cosmo_params, biases, z, lens_n_of_z, source_n_of_z):
 
             # and store it in a dictionary
             c_ell[field1, field2] = cl
-
+            
     return c_ell
 
 
@@ -263,6 +263,8 @@ def run_flask(
         clustering_maps[i] = healpy.smoothing(
             clustering_maps[i], fwhm=np.radians(smoothing / 60), verbose=False, iter=1
         )
+        # making this into overdensity
+        clustering_maps[i]/=clustering_maps[i].mean()
 
     for i in range(nbin_source):
         convergence_maps[i] = healpy.smoothing(
