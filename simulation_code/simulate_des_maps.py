@@ -265,6 +265,7 @@ def run_flask(
         )
         # making this into overdensity
         clustering_maps[i]/=clustering_maps[i].mean()
+        clustering_maps[i] -= 1
 
     for i in range(nbin_source):
         convergence_maps[i] = healpy.smoothing(
