@@ -8,6 +8,7 @@ Created on Tue Dec 15 10:36:00 2020
 
 import numpy as np
 import math
+import time
 
 from observables import observables
 
@@ -17,9 +18,10 @@ dict_v = {}
 dict_cov = {}
 
 
-def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_type='MF', m_type='l', save_L = False, return_all=False):
+def likelihood(cosmo_params, smoothing=5, nside=256, thr_ct=10, sky_frac=1, a_type='MF', m_type='l', return_all=False):
     
-    # input needs to be an array not a dictionary
+    # start time
+    tic = time.perf_counter()
     
     '''
     Parameters
@@ -43,11 +45,10 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_t
     a_type:     Analysis type. Minkowski functional, power spectrum (Cl), or both. The default is both (MF+Cl).
     m_type:     Map type. Clustering, lensing, or both. The default is both ('c+l').
     return_all: Returns likelihood, mean array, covariance, analysis mean array, Minkowski thresholds, MF_0, MF_1, MF_2, Cls
-    save_L:     Saves likelihood values in an output file if True.
 
     Returns
     -------
-    L :         The likehood for the input parameter space.
+    L :         The likehood for the input parameter space (each iteration gets saved in the same array).
     '''
 
     print('Cosmological parameter values: ',cosmo_params)
@@ -95,26 +96,25 @@ def likelihood(cosmo_params, smoothing=10, nside=512, thr_ct=10, sky_frac=1, a_t
         # get MF and/or Cl observables given input parameters
         output = observables(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside, thr_ct, sky_frac, a_type, m_type, seed = 10291995)
 
-        # FIND LIKELIHOOD      
+        # calculate likelihood      
         diff = output - fiducial_mean
         L = -0.5 * diff @ i_cov @ diff
         
-        # return the likelihood
+        # print the likelihood
         print('Likelihood: ',L)
+
+        # end time
+        toc = time.perf_counter()
+        print('Likelihood calculation time:',toc - tic,'sec')
+
         
-        # save likelihood if specified
-        if save_L:
-            print(L.shape)
-            prev_L = np.load('L.npy')
-            print('loaded')
-            new_L = np.append((prev_L,L),axis=None)
-            print('Length of likelihood array: ',new_L.shape)
-            np.save('L',new_L)
-        
+        # return specified variables
         if return_all:
             return L,V,cov,fiducial_mean,output
         else:
             return L
+
+
         
     except:
         print('Likelihood: -inf')
