@@ -46,6 +46,9 @@ while True:
     # run sampler
     sampler.run_mcmc(start, nsteps)
 
+    # set starting position after first run
+    start = None
+    
     #force print
     sys.stdout.flush()
     
