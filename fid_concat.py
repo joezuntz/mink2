@@ -1,15 +1,16 @@
 import os
 import numpy as np
 import pymaster as nmt
-
+import sys
+import glob
 
 # vary smoothing, nside, and analysis type
 smoothing=5
-nside=1024
+nside=256
 thr_ct = 10
 sky_frac = 1
-a_type = 'MF+Cl'
-m_type = 'l'
+a_type = sys.argv[1] #'MF+Cl'
+m_type = sys.argv[2] #'l'
 
 # locations of MFs and Cls
 mf_path = '/disk01/ngrewal/MFs'
@@ -20,19 +21,20 @@ itr = 1000
 
 # make a list of arrays
 if a_type == 'MF':
+    v = [np.load(os.path.join(mf_path,filename)) for filename in glob.glob(os.path.join(mf_path,f'V_*_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}.npy'))]
     
-    v = [np.load(os.path.join(mf_path,f'V_{i+1}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}.npy')) for i in range(itr)]
-
 if a_type == 'Cl':
-                                         
-    v = [np.load(os.path.join(cl_path,f'C_{i+1}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}.npy')) for i in range(itr)]
+    v = [np.load(os.path.join(cl_path,filename)) for filename in glob.glob(os.path.join(cl_path,f'C_*_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}.npy'))]
 
 if a_type =='MF+Cl':
 
-    v = [np.concatenate((np.load(os.path.join(mf_path,f'V_{i+1}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}.npy')),np.load(os.path.join(cl_path,f'C_{i+1}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}.npy'))),axis=None) for i in range(itr)]                                                              # concatenate MFs and Cls 
+#    for i in range(itr):
 
+#        if os.path.exists(os.path.join(mf_path,f'V_{i+1}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}.npy')) and os.path.exists(os.path.join(cl_path,f'C_{i+1}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}.npy'))):
+        
+    v = [np.concatenate((np.load(os.path.join(mf_path,f'V_{i+1}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}.npy')),np.load(os.path.join(cl_path,f'C_{i+1}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}.npy'))),axis=None) for i in range(itr) if os.path.exists(os.path.join(mf_path,f'V_{i+1}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}.npy')) and os.path.exists(os.path.join(cl_path,f'C_{i+1}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}.npy'))]                                                              # concatenate MFs and Cls 
 
-print(len(v))
+    
     
 # stack the arrays                                                           
 z = np.vstack(v)
