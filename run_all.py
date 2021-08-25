@@ -49,38 +49,29 @@ python /home/ngrewal/mink2/fid_concat.py {a_type} {m_type}''')
 calc_script.close()
 
 # run script
-<<<<<<< HEAD
 #s = subprocess.check_output(args = f'/home/ngrewal/mink2/sub/sbatch calc_{a_type}_{m_type}.sub')
 s = subprocess.run(args = f'/home/ngrewal/mink2/sub/sbatch calc_{a_type}_{m_type}.sub', capture_output = True)
-=======
 #s = subprocess.check_output(args = f'sbatch /home/ngrewal/mink2/sub/calc_{a_type}_{m_type}.sub')
 #s = subprocess.check_output('sbatch',f'/home/ngrewal/mink2/sub/calc_{a_type}_{m_type}.sub')
 s = subprocess.run(args = ["f/home/ngrewal/mink2/sub/calc_{a_type}_{m_type}.sub"],capture_output=True)
 #s = subprocess.CompletedProcess(args =  ['sbatch', f'/home/ngrewal/mink2/sub/calc_{a_type}_{m_type}.sub'],returncode=0)
->>>>>>> 425544e9ed23c899a45b32eb37a6a0166a01bbe2
 print(s)
 
 # gets a central job id
 calc_job_id = s.split()[-1]
 print(calc_job_id)
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 425544e9ed23c899a45b32eb37a6a0166a01bbe2
 '''
 # STEP 3: run an mcmc chain
 
 # create a new script
 mcmc_script = open(f'/home/ngrewal/mink2/sub/mcmc_{a_type}_{m_type}.sub',"w+")
 
-<<<<<<< HEAD
 mcmc_script.write(f
                                                                                               
 #!/bin/bash                                                                                                                                       
 #SBATCH --time=05:00:00                                                                                                                           
 #SBATCH --cpus-per-task=32                                                                                                                        
-=======
 mcmc_script.write(f'''
 
 '''
@@ -96,17 +87,10 @@ mcmc_script.write(f'''
 #SBATCH --dependency=afterok:{calc_job_id}                                                                                                       
 
 export LD_LIBRARY_PATH=${CONDA_PREFIX}/lib:${LD_LIBRARY_PATH}
-<<<<<<< HEAD
-export OMP_NUM_THREADS=32
-#time mpiexec -n 1 python mcmc_simplified.py                                                                                                      
-time python /home/ngrewal/mink2/mcmc.py {smoothing} {nside} {thr_ct} {sky_frac} {a_type} {m_type})
-=======
 export OMP_NUM_THREADS=32                                                                                            
-time python /home/ngrewal/mink2/mcmc.py {smoothing} {nside} {thr_ct} {sky_frac} {a_type} {m_type}'''#)
+time python /home/ngrewal/mink2/mcmc.py {smoothing} {nside} {thr_ct} {sky_frac} {a_type} {m_type})
 
 
-'''
->>>>>>> 425544e9ed23c899a45b32eb37a6a0166a01bbe2
 
 mcmc_script.close()
 
@@ -119,5 +103,3 @@ s = subprocess.check_output(args = f'sbatch /home/ngrewal/mink2/sub/mcmc_{a_type
 # need to add quotations back into script writing
 ''' 
 
-
-'''
