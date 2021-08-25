@@ -19,6 +19,10 @@ dirname = os.path.dirname(__file__)
 template_file = os.path.abspath(os.path.join(dirname, "example.config"))
 des_file = os.path.abspath(os.path.join(dirname, "y1_redshift_distributions_v1.fits"))
 
+des_new_file = os.path.abspath(os.path.join(dirname, "new_data", "des.fits"))
+lsst_y1_file = os.path.abspath(os.path.join(dirname, "new_data", "lsst_y1.fits"))
+lsst_y10_file = os.path.abspath(os.path.join(dirname, "new_data", "lsst_y10.fits"))
+
 
 # This is a little python thing that lets you run
 # commands in a temporary directory, so that if we
@@ -30,21 +34,28 @@ def inside_temp_directory():
     # make a temporary directory somewhere.
     # the with statement means that at the end
     # of this the directory will be deleted
-    with tempfile.TemporaryDirectory() as dirname:
-        # get the directory we're to start with
-        orig_dir = os.getcwd()
-        # change to that directory
-        os.chdir(dirname)
-        # this makes it so whatever happens
-        # (even if there is a crash or something)
-        # we will change back to the original directory
+    if 'MINK_DEBUG' in os.environ:
         try:
-            # this yield thing means we now go and run
-            # code outside this function, inside the
-            # "with" block below.
-            yield dirname
+            yield os.getcwd()
         finally:
-            os.chdir(orig_dir)
+            pass
+    else:
+        with tempfile.TemporaryDirectory() as dirname:
+            # get the directory we're to start with
+            orig_dir = os.getcwd()
+            # change to that directory
+            os.chdir(dirname)
+            # this makes it so whatever happens
+            # (even if there is a crash or something)
+            # we will change back to the original directory
+            try:
+                # this yield thing means we now go and run
+                # code outside this function, inside the
+                # "with" block below.
+                yield dirname
+            finally:
+                os.chdir(orig_dir)
+
 
 
 def apply_normalization(z, n_of_z, n_total):
@@ -469,3 +480,89 @@ def simulate_des_maps_bias(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5
         do_clust,
         do_lens,
     )
+
+
+def simulate_general_maps(omega_b, omega_m, h, n_s, sigma_8, biases, smoothing, nside, seed=29101995, source_file = des_new_file, nmax=None, do_clust=True, do_lens=True):
+    f = fits.open(source_file)
+    source_n_of_z = []
+    source_n_total = []
+
+    # Load DES source (convergence) sample from the FITS
+    # file
+    ext = f["SOURCE"]
+    hdr = ext.header
+    z = ext.data["Z"][:]
+    nbin = hdr['NBIN']
+    for b in range(nbin):
+        nz = ext.data[f"BIN_{b}"][:]
+        source_n_of_z.append(nz)
+        ngal = hdr[f"NGAL_{b}"]
+        source_n_total.append(ngal)
+
+    # and the lens (clustering) sample from the same file.
+    lens_n_of_z = []
+    lens_n_total = []
+
+    ext = f["LENS"]
+    hdr = ext.header
+    z = ext.data["Z"][:]
+    nbin = hdr['NBIN']
+    for b in range(nbin):
+        nz = ext.data[f"BIN_{b}"][:]
+        lens_n_of_z.append(nz)
+        ngal = hdr[f"NGAL_{b}"]
+        lens_n_total.append(ngal)
+
+    f.close()
+
+    # construct the dictionary of parameters
+    # we will need.  We fix some and compute others.
+    cosmo_params = {
+        "Omega_c": omega_m - omega_b,
+        "Omega_b": omega_b,
+        "h": h,
+        "n_s": n_s,
+        "sigma8": sigma_8,
+    }
+
+    if not len(biases) == len(lens_n_of_z):
+        n1 = len(biases)
+        n2 = len(lens_n_of_z)
+        raise ValueError(f"Wrong number of biases supplied. Wanted {n2} got {n1}")
+
+    return simulate_maps(
+        cosmo_params,
+        nside,
+        biases,
+        z,
+        lens_n_of_z,
+        lens_n_total,
+        source_n_of_z,
+        source_n_total,
+        smoothing,
+        seed,
+        nmax,
+        do_clust,
+        do_lens,
+    )
+
+
+def get_fiducial_bias(filename):
+    # read the file and to get the mean sample redshifts
+    with fits.open(filename) as f:
+        ext = f['LENS']
+        z = ext.data['Z']
+        nbin = ext.header['NBIN']
+        mean_z = np.zeros(nbin)
+        # get the mean z for each bin
+        for i in range(nbin):
+            nz = ext.data[f'BIN_{i}']
+            mu = (z * nz).sum() / nz.sum()
+            mean_z[i] = mu
+
+    # use pyccl to calculate 1 / D(z), which
+    # is our fiducial bias
+    mean_a = 1 / (1 + mean_z)
+    cosmo = pyccl.Cosmology(Omega_c=0.24, Omega_b=0.045, h=0.7, n_s=0.96, sigma8=0.8)
+    D = pyccl.growth_factor(cosmo, mean_a)
+    return 1 / D
