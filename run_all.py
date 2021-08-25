@@ -49,18 +49,21 @@ python /home/ngrewal/mink2/fid_concat.py {a_type} {m_type}''')
 calc_script.close()
 
 # run script
-s = subprocess.check_output(args = f'/home/ngrewal/mink2/sub/sbatch calc_{a_type}_{m_type}.sub')
+#s = subprocess.check_output(args = f'/home/ngrewal/mink2/sub/sbatch calc_{a_type}_{m_type}.sub')
+s = subprocess.run(args = f'/home/ngrewal/mink2/sub/sbatch calc_{a_type}_{m_type}.sub', capture_output = True)
+print(s)
 
 # gets a central job id
 calc_job_id = s.split()[-1]
 print(calc_job_id)
 
+'''
 # STEP 3: run an mcmc chain
 
 # create a new script
 mcmc_script = open(f'/home/ngrewal/mink2/sub/mcmc_{a_type}_{m_type}.sub',"w+")
 
-mcmc_script.write(f'''
+mcmc_script.write(f
                                                                                               
 #!/bin/bash                                                                                                                                       
 #SBATCH --time=05:00:00                                                                                                                           
@@ -74,7 +77,7 @@ mcmc_script.write(f'''
 export LD_LIBRARY_PATH=${CONDA_PREFIX}/lib:${LD_LIBRARY_PATH}
 export OMP_NUM_THREADS=32
 #time mpiexec -n 1 python mcmc_simplified.py                                                                                                      
-time python /home/ngrewal/mink2/mcmc.py {smoothing} {nside} {thr_ct} {sky_frac} {a_type} {m_type}''')
+time python /home/ngrewal/mink2/mcmc.py {smoothing} {nside} {thr_ct} {sky_frac} {a_type} {m_type})
 
 mcmc_script.close()
 
@@ -84,5 +87,7 @@ s = subprocess.check_output(args = f'/home/ngrewal/mink2/sub/sbatch mcmc_{a_type
 
 
 
+# need to add quotations back into script writing
+''' 
 
 
