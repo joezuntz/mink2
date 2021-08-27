@@ -5,26 +5,25 @@ import sys
 import glob
 
 # vary smoothing, nside, and analysis type
-smoothing=5
-nside=256
-thr_ct = 10
-sky_frac = 1
-a_type = sys.argv[1] #'MF+Cl'
-m_type = sys.argv[2] #'l'
+smoothing = sys.argv[1]
+nside = sys.argv[2]
+thr_ct = sys.argv[3]
+sky_frac = sys.argv[4]
+a_type = sys.argv[5] 
+m_type = sys.argv[6] 
+source_file = sys.argv[7]
+itr = sys.argv[8]*1000
 
 # locations of MFs and Cls
 mf_path = '/disk01/ngrewal/MFs'
-cl_path = '/disk01/ngrewal/Cls'
-
-# structure variables
-itr = 1000                                                          
+cl_path = '/disk01/ngrewal/Cls'                                                   
 
 # make a list of arrays
 if a_type == 'MF':
-    v = [np.load(os.path.join(mf_path,filename)) for filename in glob.glob(os.path.join(mf_path,f'V_*_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}.npy'))]
+    v = [np.load(os.path.join(mf_path,filename)) for filename in glob.glob(os.path.join(mf_path,f'V_*_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}_{source_file}.npy'))]
     
 if a_type == 'Cl':
-    v = [np.load(os.path.join(cl_path,filename)) for filename in glob.glob(os.path.join(cl_path,f'C_*_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}.npy'))]
+    v = [np.load(os.path.join(cl_path,filename)) for filename in glob.glob(os.path.join(cl_path,f'C_*_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}_{source_file}.npy'))]
 
 if a_type =='MF+Cl':
 
@@ -32,7 +31,7 @@ if a_type =='MF+Cl':
 
 #        if os.path.exists(os.path.join(mf_path,f'V_{i+1}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}.npy')) and os.path.exists(os.path.join(cl_path,f'C_{i+1}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}.npy'))):
         
-    v = [np.concatenate((np.load(os.path.join(mf_path,f'V_{i+1}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}.npy')),np.load(os.path.join(cl_path,f'C_{i+1}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}.npy'))),axis=None) for i in range(itr) if os.path.exists(os.path.join(mf_path,f'V_{i+1}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}.npy')) and os.path.exists(os.path.join(cl_path,f'C_{i+1}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}.npy'))]                                                              # concatenate MFs and Cls 
+    v = [np.concatenate((np.load(os.path.join(mf_path,f'V_{i+1}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}_{source_file}.npy')),np.load(os.path.join(cl_path,f'C_{i+1}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}_{source_file}.npy'))),axis=None) for i in range(itr) if os.path.exists(os.path.join(mf_path,f'V_{i+1}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}_{source_file}.npy')) and os.path.exists(os.path.join(cl_path,f'C_{i+1}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}_{source_file}.npy'))]                                                              # concatenate MFs and Cls 
 
     
     
@@ -40,7 +39,7 @@ if a_type =='MF+Cl':
 z = np.vstack(v)
 print(z.shape)
 
-np.save(f'all_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}',z)   # save concatenated array in current directory
+np.save(f'all_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_{source_file}',z)   # save concatenated array in current directory
 
 
 

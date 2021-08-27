@@ -18,7 +18,7 @@ dict_v = {}
 dict_cov = {}
 
 
-def likelihood(cosmo_params, smoothing=5, nside=256, thr_ct=10, sky_frac=1, a_type='MF', m_type='l', return_all=False):
+def likelihood(cosmo_params,bias,smoothing,nside,thr_ct,sky_frac,a_type,m_type,source_file,return_all=False):
     
     # start time
     tic = time.perf_counter()
@@ -51,7 +51,7 @@ def likelihood(cosmo_params, smoothing=5, nside=256, thr_ct=10, sky_frac=1, a_ty
     L :         The likehood for the input parameter space (each iteration gets saved in the same array).
     '''
 
-    print('Cosmological parameter values: ',cosmo_params)
+    print('Cosmological parameter values: ',cosmo_params,bias)
 
     # define cosmological parameters based on input array
     omega_b = cosmo_params[0]
@@ -59,11 +59,6 @@ def likelihood(cosmo_params, smoothing=5, nside=256, thr_ct=10, sky_frac=1, a_ty
     h = cosmo_params[2]
     n_s = cosmo_params[3]
     sigma_8 = cosmo_params[4]
-    b1 = cosmo_params[5]
-    b2 = cosmo_params[6]
-    b3 = cosmo_params[7]
-    b4 = cosmo_params[8]
-    b5 = cosmo_params[9]
 
 
     # cosmological parameter priors
@@ -76,14 +71,14 @@ def likelihood(cosmo_params, smoothing=5, nside=256, thr_ct=10, sky_frac=1, a_ty
     try:
         
         # get mean of fiducial simulation MF + Cl arrays (Note: assumes mean has been calculated already)
-        if (nside,smoothing,thr_ct,sky_frac,a_type,m_type) in dict_v:                       # find the corresponding workspace if it exists
-            V = dict_v[nside,smoothing,thr_ct,sky_frac,a_type,m_type]
-            cov = dict_cov[nside,smoothing,thr_ct,sky_frac,a_type,m_type]
+        if (nside,smoothing,thr_ct,sky_frac,a_type,m_type,source_file) in dict_v:                       # find the corresponding workspace if it exists
+            V = dict_v[nside,smoothing,thr_ct,sky_frac,a_type,m_type,source_file]
+            cov = dict_cov[nside,smoothing,thr_ct,sky_frac,a_type,m_type,source_file]
         else:                                                                                     
-            V = np.load(f'all_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}.npy')  # this comes from '/disk01/ngrewal/Fiducial_Simulations'
+            V = np.load(f'all_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_{source_file}.npy')  # this comes from '/disk01/ngrewal/Fiducial_Simulations'
             cov = np.cov(V.transpose())                                                            # find the covariance    
-            dict_v[nside,smoothing,thr_ct,sky_frac,a_type,m_type] = V                              # save the mean vector in the corresponding workspace
-            dict_cov[nside,smoothing,thr_ct,sky_frac,a_type,m_type] = cov                          # save the covariance in the corresponding workspace                                                             
+            dict_v[nside,smoothing,thr_ct,sky_frac,a_type,m_type,source_file] = V                              # save the mean vector in the corresponding workspace
+            dict_cov[nside,smoothing,thr_ct,sky_frac,a_type,m_type,source_file] = cov                          # save the covariance in the corresponding workspace                                                             
         fiducial_mean = np.mean(V,axis=0)                         # find the mean of the fiducial simulation MFs and Cls
          
         # Find the inverse covariance
@@ -94,7 +89,7 @@ def likelihood(cosmo_params, smoothing=5, nside=256, thr_ct=10, sky_frac=1, a_ty
         i_cov = ((N_)/(N_ - p - 1)) * np.linalg.inv(cov)      # find the inverse covariance with the Anderson-Hartlap correction
 
         # get MF and/or Cl observables given input parameters
-        output = observables(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside, thr_ct, sky_frac, a_type, m_type, seed = 10291995)
+        output = observables(omega_b, omega_m, h, n_s, sigma_8, bias, smoothing, nside, thr_ct, sky_frac, a_type, m_type, seed, source_file)
 
         # calculate likelihood      
         diff = output - fiducial_mean
@@ -113,7 +108,6 @@ def likelihood(cosmo_params, smoothing=5, nside=256, thr_ct=10, sky_frac=1, a_ty
             return L,V,cov,fiducial_mean,output
         else:
             return L
-
 
         
     except:

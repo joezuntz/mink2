@@ -12,16 +12,16 @@ from mf import calc_mf_2maps
 from cl import Cl_2maps
 import sys
 sys.path.append("./simulation_code/")
-from simulate_des_maps import simulate_des_maps_bias
+from simulate_des_maps import *
 
 os.environ["PATH"]='/home/ngrewal/flask/bin:'+os.environ["PATH"]
 
 
 
-def observables(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside, thr_ct, sky_frac, a_type, m_type, seed=10291995):
+def observables(omega_b, omega_m, h, n_s, sigma_8, bias, smoothing, nside, thr_ct, sky_frac, a_type, m_type, seed, source_file):
 
     # build new clustering and lensing maps
-    cmaps,lmaps = simulate_des_maps_bias(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside, seed)
+    cmaps,lmaps = simulate_general_maps(omega_b,omega_m,h,n_s,sigma_8,bias,smoothing,nside,seed,source_file)
     
     # calculate sky fraction
     frac = int(math.floor(sky_frac*12*nside**2))

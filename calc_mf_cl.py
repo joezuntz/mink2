@@ -6,11 +6,14 @@ from observables import observables
 os.environ["PATH"]='/home/ngrewal/flask/bin:'+os.environ["PATH"]
 
 # define inputs
-nside = int(sys.argv[1])#1024
-smoothing = int(sys.argv[2])
+smoothing = int(sys.argv[1])
+nside = int(sys.argv[2])
 thr_ct = int(sys.argv[3])
 sky_frac = float(sys.argv[4])
-m_type = sys.argv[5] #'c+l' 
+m_type = sys.argv[5]
+bias = sys.argv[6]
+source_file = sys.argv[7]
+itr = int(sys.argv[8])
 
 if sky_frac==1:
     sky_frac = int(sky_frac)
@@ -19,21 +22,23 @@ if sky_frac==1:
 path_mf = '/disk01/ngrewal/MFs'
 path_cl = '/disk01/ngrewal/Cls'
 
-# define index of simulation and output
-index = int(os.environ['SLURM_ARRAY_TASK_ID'])
-
-# fiducial values
-omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5 = 0.048,0.3,0.7,0.96,0.8,1.42,1.65,1.6,1.92,2
-
-# calculate MFs
-v_all = observables(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside, thr_ct, sky_frac, a_type = 'MF', m_type = m_type, seed = index)
+for i in range(itr):
     
-# calculate Cls
-c = observables(omega_b, omega_m, h, n_s, sigma_8, b1, b2, b3, b4, b5, smoothing, nside, thr_ct, sky_frac, a_type = 'Cl', m_type = m_type, seed = index)
+    # define index of simulation and output
+    index = int(os.environ['SLURM_ARRAY_TASK_ID']+1000*i)
 
-# save MFs and Cls
-np.save(os.path.join(path_mf, f'V_{index}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}'),v_all)
-np.save(os.path.join(path_cl, f'C_{index}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}'),c)
+    # fiducial values
+    omega_b, omega_m, h, n_s, sigma_8 = 0.048,0.3,0.7,0.96,0.8
+
+    # calculate MFs
+    v_all = observables(omega_b, omega_m, h, n_s, sigma_8, bias, smoothing, nside, thr_ct, sky_frac, a_type = 'MF', m_type = m_type, seed = index, source_file = source_file)
+
+    # calculate Cls
+    c = observables(omega_b, omega_m, h, n_s, sigma_8, bias, smoothing, nside, thr_ct, sky_frac, a_type = 'Cl', m_type = m_type, seed = index, source_file = source_file)
+
+    # save MFs and Cls
+    np.save(os.path.join(path_mf, f'V_{index}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}'),v_all)
+    np.save(os.path.join(path_cl, f'C_{index}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}'),c)
 
 
 
