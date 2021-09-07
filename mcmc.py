@@ -16,8 +16,11 @@ from likelihood import *
 os.environ["PATH"]='/home/ngrewal/flask/flask/bin:'+os.environ["PATH"]
 
 # inputs (there are default values in the likelihood function)
-smoothing, nside, thr_ct, sky_frac, a_type, m_type, bias, source_file = int(sys.argv[1]),int(sys.argv[2]),int(sys.argv[3]),float(sys.argv[4]),sys.argv[5],sys.argv[6],sys.argv[7],sys.argv[8]
+smoothing, nside, thr_ct, sky_frac, a_type, m_type, source, source_file = int(sys.argv[1]),int(sys.argv[2]),int(sys.argv[3]),float(sys.argv[4]),sys.argv[5],sys.argv[6],sys.argv[7],sys.argv[8]
 print(sys.argv)
+
+bias = get_fiducial_bias(source_file)
+print("Bias is:",bias)
 
 if sky_frac==1:
     sky_frac = int(sky_frac)
@@ -27,24 +30,24 @@ cosmo_params = np.concatenate((np.array([0.048,0.3,0.7,0.96,0.8]),bias))
 nsteps, nwalkers, ndim, nchains = 10, 4*len(cosmo_params), len(cosmo_params), 1
 
 # likelihood function that fixes bias parameters for lensing maps 
-def likelihood_lens(cosmo_params,bias,smoothing,nside,thr_ct,sky_frac,a_type,m_type,source_file):
+def likelihood_lens(cosmo_params,bias,smoothing,nside,thr_ct,sky_frac,a_type,m_type,source,source_file):
     cms = [cosmo_params[0],cosmo_params[1],cosmo_params[2],cosmo_params[3],cosmo_params[4]]
     print('With fixed bias parms: ',cms)
-    return likelihood(cms,bias,smoothing,nside,thr_ct,sky_frac,a_type,m_type,source_file)
+    return likelihood(cms,bias,smoothing,nside,thr_ct,sky_frac,a_type,m_type,source,source_file)
 
 # check if sampler exists
-if os.path.exists(os.path.join(os.getcwd(),f'mcmc_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_{source_file}.p')):
+if os.path.exists(os.path.join(os.getcwd(),f'mcmc_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_{source}.p')):
     start = None
-    sampler = pickle.load(open(f'mcmc_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_{source_file}.p',"rb"))
+    sampler = pickle.load(open(f'mcmc_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_{source}.p',"rb"))
 else:
     if m_type=='l':
         cosmo_params = np.array([0.048,0.3,0.7,0.96,0.8])
         nwalkers, ndim = 4*len(cosmo_params), len(cosmo_params)
         start = np.random.randn(nwalkers, ndim)*cosmo_params*0.01 + np.tile(cosmo_params,(nwalkers,1))
-        sampler = emcee.EnsembleSampler(nwalkers, ndim, likelihood_lens, args=[bias,smoothing,nside,thr_ct,sky_frac,a_type,m_type,source_file])
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, likelihood_lens, args=[bias,smoothing,nside,thr_ct,sky_frac,a_type,m_type,source,source_file])
     else:
         start = np.random.randn(nwalkers, ndim)*cosmo_params*0.01 + np.tile(cosmo_params,(nwalkers,1))
-        sampler = emcee.EnsembleSampler(nwalkers, ndim, likelihood, args=[smoothing,nside,thr_ct,sky_frac,a_type,m_type,source_file])
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, likelihood, args=[smoothing,nside,thr_ct,sky_frac,a_type,m_type,source,source_file])
 
 
 while True:
@@ -55,14 +58,14 @@ while True:
     start = None
     
     # save sampler
-    pickle.dump(sampler,open(f'mcmc_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_{source_file}.p',"wb"))
+    pickle.dump(sampler,open(f'mcmc_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_{source}.p',"wb"))
 
     # save chain
     chain = sampler.get_chain(flat=False) #3D
-    np.save(f'chain_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_{source_file}',chain)
+    np.save(f'chain_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_{source}',chain)
 
     # save likelihood values
-    np.save(f'L_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_{source_file}',sampler.get_log_prob())
+    np.save(f'L_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_{source}',sampler.get_log_prob())
     
 '''
 # using MPI: 

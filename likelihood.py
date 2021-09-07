@@ -18,7 +18,7 @@ dict_v = {}
 dict_cov = {}
 
 
-def likelihood(cosmo_params,bias,smoothing,nside,thr_ct,sky_frac,a_type,m_type,source_file,return_all=False):
+def likelihood(cosmo_params,bias,smoothing,nside,thr_ct,sky_frac,a_type,m_type,source,source_file,return_all=False):
     
     # start time
     tic = time.perf_counter()
@@ -71,14 +71,14 @@ def likelihood(cosmo_params,bias,smoothing,nside,thr_ct,sky_frac,a_type,m_type,s
     try:
         
         # get mean of fiducial simulation MF + Cl arrays (Note: assumes mean has been calculated already)
-        if (nside,smoothing,thr_ct,sky_frac,a_type,m_type,source_file) in dict_v:                       # find the corresponding workspace if it exists
-            V = dict_v[nside,smoothing,thr_ct,sky_frac,a_type,m_type,source_file]
-            cov = dict_cov[nside,smoothing,thr_ct,sky_frac,a_type,m_type,source_file]
+        if (nside,smoothing,thr_ct,sky_frac,a_type,m_type,source) in dict_v:                       # find the corresponding workspace if it exists
+            V = dict_v[nside,smoothing,thr_ct,sky_frac,a_type,m_type,source]
+            cov = dict_cov[nside,smoothing,thr_ct,sky_frac,a_type,m_type,source]
         else:                                                                                     
-            V = np.load(f'all_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_{source_file}.npy')  # this comes from '/disk01/ngrewal/Fiducial_Simulations'
+            V = np.load(f'all_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_{source}.npy')  # this comes from '/disk01/ngrewal/Fiducial_Simulations'
             cov = np.cov(V.transpose())                                                            # find the covariance    
-            dict_v[nside,smoothing,thr_ct,sky_frac,a_type,m_type,source_file] = V                              # save the mean vector in the corresponding workspace
-            dict_cov[nside,smoothing,thr_ct,sky_frac,a_type,m_type,source_file] = cov                          # save the covariance in the corresponding workspace                                                             
+            dict_v[nside,smoothing,thr_ct,sky_frac,a_type,m_type,source] = V                              # save the mean vector in the corresponding workspace
+            dict_cov[nside,smoothing,thr_ct,sky_frac,a_type,m_type,source] = cov                          # save the covariance in the corresponding workspace                                                             
         fiducial_mean = np.mean(V,axis=0)                         # find the mean of the fiducial simulation MFs and Cls
          
         # Find the inverse covariance
@@ -89,7 +89,7 @@ def likelihood(cosmo_params,bias,smoothing,nside,thr_ct,sky_frac,a_type,m_type,s
         i_cov = ((N_)/(N_ - p - 1)) * np.linalg.inv(cov)      # find the inverse covariance with the Anderson-Hartlap correction
 
         # get MF and/or Cl observables given input parameters
-        output = observables(omega_b, omega_m, h, n_s, sigma_8, bias, smoothing, nside, thr_ct, sky_frac, a_type, m_type, seed, source_file)
+        output = observables(omega_b, omega_m, h, n_s, sigma_8, bias, smoothing, nside, thr_ct, sky_frac, a_type, m_type, seed=29101995, source_file=source_file)
 
         # calculate likelihood      
         diff = output - fiducial_mean

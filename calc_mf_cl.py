@@ -1,6 +1,8 @@
 import os
 import numpy as np
 import sys
+sys.path.append("./simulation_code/")
+from simulate_des_maps import *
 from observables import observables
 
 os.environ["PATH"]='/home/ngrewal/flask/bin:'+os.environ["PATH"]
@@ -11,9 +13,11 @@ nside = int(sys.argv[2])
 thr_ct = int(sys.argv[3])
 sky_frac = float(sys.argv[4])
 m_type = sys.argv[5]
-bias = sys.argv[6]
+source = sys.argv[6]
 source_file = sys.argv[7]
-itr = int(sys.argv[8])
+itr = int(sys.argv[8]) # count of fiducial realisations in thousands
+
+bias = get_fiducial_bias(source_file)
 
 if sky_frac==1:
     sky_frac = int(sky_frac)
@@ -25,7 +29,7 @@ path_cl = '/disk01/ngrewal/Cls'
 for i in range(itr):
     
     # define index of simulation and output
-    index = int(os.environ['SLURM_ARRAY_TASK_ID']+1000*i)
+    index = int(os.environ['SLURM_ARRAY_TASK_ID'])+1000*i
 
     # fiducial values
     omega_b, omega_m, h, n_s, sigma_8 = 0.048,0.3,0.7,0.96,0.8
@@ -37,8 +41,8 @@ for i in range(itr):
     c = observables(omega_b, omega_m, h, n_s, sigma_8, bias, smoothing, nside, thr_ct, sky_frac, a_type = 'Cl', m_type = m_type, seed = index, source_file = source_file)
 
     # save MFs and Cls
-    np.save(os.path.join(path_mf, f'V_{index}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}'),v_all)
-    np.save(os.path.join(path_cl, f'C_{index}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}'),c)
+    np.save(os.path.join(path_mf, f'V_{index}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}_{source}'),v_all)
+    np.save(os.path.join(path_cl, f'C_{index}_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}_{source}'),c)
 
 
 

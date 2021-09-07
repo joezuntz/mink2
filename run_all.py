@@ -21,8 +21,8 @@ sky_frac = sys.argv[4]
 a_type = sys.argv[5]
 m_type = sys.argv[6]
 source = sys.argv[7]
-source_file = os.path.abspath(os.path.join(dirname,"new_data",source+".fits"))
-bias = get_fiducial_bias(source_file)
+source_file = os.path.abspath(os.path.join(dirname, "simulation_code/new_data", source+".fits"))
+print(source_file)
 itr = 1 # number of fiducial iterations (in thousands)
 
 # make worker nodes a variable bc they change frequently
@@ -34,7 +34,7 @@ node_list = 'worker[001-036],worker[038-066],worker[075-076],worker[078-084]'
 # STEP 2: combine observable iterations into a single array
 
 # create a new script
-calc_script = open(f'/home/ngrewal/mink2/sub/calc_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_{source_file}.sub',"w+")
+calc_script = open(f'/home/ngrewal/mink2/sub/calc_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_{source}.sub',"w+")
 
 calc_script.write(          
 f'''#!/bin/bash
@@ -44,31 +44,30 @@ f'''#!/bin/bash
 #SBATCH --exclude={node_list}                                                                 
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=1
-#SBATCH --output='/disk01/ngrewal/logs/log.mf_cl_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}_{source_file}.%a.txt'
+#SBATCH --output='/disk01/ngrewal/logs/log.mf_cl_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}_{source}.%a.txt'
 
 export LD_LIBRARY_PATH=${{CONDA_PREFIX}}/lib:${{LD_LIBRARY_PATH}}
 export OMP_NUM_THREADS=8
-time srun -u -n1 python /home/ngrewal/mink2/calc_mf_cl.py {smoothing} {nside} {thr_ct} {sky_frac} {m_type} {bias} {source_file} {itr}
+time srun -u -n1 python /home/ngrewal/mink2/calc_mf_cl.py {smoothing} {nside} {thr_ct} {sky_frac} {m_type} {source} {source_file} {itr}
 
 # concatenate fiducial observables
-python /home/ngrewal/mink2/fid_concat.py {smoothing} {nside} {thr_ct} {sky_frac} {a_type} {m_type} {source_file} {itr}''')
+python /home/ngrewal/mink2/fid_concat.py {smoothing} {nside} {thr_ct} {sky_frac} {a_type} {m_type} {source} {itr}''')
 
 calc_script.close()
 
 # run script
-s = subprocess.run(args = ['sbatch',f'/home/ngrewal/mink2/sub/calc_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_{source_file}.sub'], capture_output = True)
+s = subprocess.run(args = ['sbatch',f'/home/ngrewal/mink2/sub/calc_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_{source}.sub'], capture_output = True)
 print(s)
 
 # gets job id from the compute process instance
-#calc_job_id = (str(s.stdout)[-9:-3])
-calc_job_id = str(s.stdout).split()[-1]
+calc_job_id = str(s.stdout).split()[-1][0:6]+'_1000'
 print(calc_job_id)
 
 
 # STEP 3: run an mcmc chain
 
 # create a new script
-mcmc_script = open(f'/home/ngrewal/mink2/sub/mcmc_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_{source_file}.sub',"w+")
+mcmc_script = open(f'/home/ngrewal/mink2/sub/mcmc_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_{source}.sub',"w+")
 
 mcmc_script.write(
 f'''#!/bin/bash                    
@@ -77,24 +76,21 @@ f'''#!/bin/bash
 #SBATCH --exclude={node_list}
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=1
-#SBATCH --output=log.mcmc_{a_type}_{m_type}.txt
-#SBATCH --dependency=afterok:{calc_job_id}
+#SBATCH --output=log.mcmc_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_{source}.txt
 
 export LD_LIBRARY_PATH=${{CONDA_PREFIX}}/lib:${{LD_LIBRARY_PATH}}
 export OMP_NUM_THREADS=32                                                                                            
-time python /home/ngrewal/mink2/mcmc.py {smoothing} {nside} {thr_ct} {sky_frac} {a_type} {m_type} {bias} {source_file}''')
+time python /home/ngrewal/mink2/mcmc.py {smoothing} {nside} {thr_ct} {sky_frac} {a_type} {m_type} {source} {source_file}''')
 
 mcmc_script.close()
 
 
 # run script
-s = subprocess.run(args = ['sbatch',f'/home/ngrewal/mink2/sub/mcmc_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_{sourcefile}.sub'], capture_output = True)
+s = subprocess.run(args = ['sbatch',f'--dependency=afterok:{calc_job_id}', f'/home/ngrewal/mink2/sub/mcmc_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_{source}.sub'], capture_output = True)
 print(s)
 
 
 # gets job id from the compute process instance
-#calc_job_id = (str(s.stdout)[-9:-3])
-calc_job_id = str(s.stdout).split()[-1]
-print(calc_job_id)
+print(str(s.stdout).split()[-1][0:6])
 
                   
