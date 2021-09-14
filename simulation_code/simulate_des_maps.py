@@ -40,22 +40,25 @@ def inside_temp_directory():
         finally:
             pass
     else:
-        with tempfile.TemporaryDirectory() as dirname:
-            # get the directory we're to start with
-            orig_dir = os.getcwd()
-            # change to that directory
-            os.chdir(dirname)
-            # this makes it so whatever happens
-            # (even if there is a crash or something)
-            # we will change back to the original directory
-            try:
-                # this yield thing means we now go and run
-                # code outside this function, inside the
-                # "with" block below.
-                yield dirname
-            finally:
-                os.chdir(orig_dir)
-
+        try:
+            with tempfile.TemporaryDirectory() as dirname:
+                # get the directory we're to start with
+                orig_dir = os.getcwd()
+                # change to that directory
+                os.chdir(dirname)
+                # this makes it so whatever happens
+                # (even if there is a crash or something)
+                # we will change back to the original directory
+                try:
+                    # this yield thing means we now go and run
+                    # code outside this function, inside the
+                    # "with" block below.
+                    yield dirname
+                finally:
+                    os.chdir(orig_dir)
+        finally:
+            if os.path.exists(dirname):
+                print(f"Dirname {dirname} was not deleted properly. Trying again")
 
 
 def apply_normalization(z, n_of_z, n_total):
