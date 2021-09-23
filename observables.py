@@ -10,12 +10,38 @@ import math
 import os
 from mf import calc_mf_2maps
 from cl import Cl_2maps
+import pymaster as nmt
 import time
 import sys
 sys.path.append("./simulation_code/")
 from simulate_des_maps import *
 
 os.environ["PATH"]='/home/ngrewal/flask/bin:'+os.environ["PATH"]
+
+def number_of_observables(thr_ct, nside, a_type, m_type, source_file):
+    # Get the number of maps in the given source file
+    f = fits.open(source_file)
+    nsource = f["SOURCE"].header['NBIN']
+    nlens = f["LENS"].header['NBIN']
+    f.close()
+
+    # Check if we are using source, lens, or both bins
+    if m_type == 'c+l':
+        nmap = nsource + nlens
+    elif m_type == 'l':
+        nmap = nsource
+    elif m_type == 'c':
+        nmap = nlens
+    else:
+        raise ValueError(f"Unknown m_type {m_type}")
+
+    nmf = nmap * thr_ct * 3
+
+    # Do the same bin generation as is done in cl.py
+    b = nmt.NmtBin.from_lmax_linear(lmax=int(1.5*nside),nlb=50)
+    cl_len = b.get_n_bands()
+    ncl = nmap * cl_len
+    return ncl, nmf
 
 
 
