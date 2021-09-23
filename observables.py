@@ -18,7 +18,7 @@ from simulate_des_maps import *
 
 os.environ["PATH"]='/home/ngrewal/flask/bin:'+os.environ["PATH"]
 
-def number_of_observables(thr_ct, nside, a_type, m_type, source_file):
+def number_of_observables(thr_ct, nside, m_type, source_file):
     # Get the number of maps in the given source file
     f = fits.open(source_file)
     nsource = f["SOURCE"].header['NBIN']
@@ -74,10 +74,13 @@ def observables(omega_b, omega_m, h, n_s, sigma_8, bias, smoothing, nside, thr_c
         # lensing only
         elif m_type=='l':
             output = Cl_2maps([],lmaps,nside,frac).flatten()
+
+        else:
+            raise ValueError(f"Unknown m_type {m_type}")
     
         
     # Minkowski functional analysis only
-    if a_type=='MF':
+    elif a_type=='MF':
             
         # clustering and lensing maps
         if m_type=='c+l':                                                                                                                                                                                   
@@ -90,17 +93,25 @@ def observables(omega_b, omega_m, h, n_s, sigma_8, bias, smoothing, nside, thr_c
         # lensing only
         elif m_type=='l':
             v,v0,v1,v2 = calc_mf_2maps([],lmaps,thr_ct,frac) 
-                 
+
+        else:
+            raise ValueError(f"Unknown m_type {m_type}")
+
         output = np.concatenate((v0.flatten(),v1.flatten(),v2.flatten()))
     
     
     # Minkowski functional and power spectrum analysis
-    if a_type=='MF+Cl':
+    elif a_type=='MF+Cl':
                      
         # clustering and lensing maps  
         if m_type=='c+l':
+            t3 = time.perf_counter()
             v,v0,v1,v2 = calc_mf_2maps(cmaps,lmaps,thr_ct,frac)     # calculate MFs
+            t4 = time.perf_counter()
+            print('MF calculation time: ',t4-t3,'sec')
             c = Cl_2maps(cmaps,lmaps,nside,frac)                    # calculate Cls
+            t5 = time.perf_counter()
+            print('Cl calculation time: ',t5-t4,'sec')
            
         # clustering only
         elif m_type=='c':
@@ -111,11 +122,15 @@ def observables(omega_b, omega_m, h, n_s, sigma_8, bias, smoothing, nside, thr_c
         elif m_type=='l':
             v,v0,v1,v2 = calc_mf_2maps([],lmaps,thr_ct,frac)        # calculate MFs
             c = Cl_2maps([],lmaps,nside,frac)                           # calculate Cls
+
+        else:
+            raise ValueError(f"Unknown m_type {m_type}")
             
         # concatenate MFs and Cls
         output = np.concatenate((v0.flatten(),v1.flatten(),v2.flatten(),c.flatten()))
-
-
+    else:
+        raise ValueError(f"Unknown a_type {a_type}")
+        
     # observable calculation time
     t2 = time.perf_counter()
     print('Observable calculation time: ',t2-t1,'sec')
