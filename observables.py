@@ -10,6 +10,7 @@ import math
 import os
 from mf import calc_mf_2maps
 from cl import Cl_2maps
+import time
 import sys
 sys.path.append("./simulation_code/")
 from simulate_des_maps import *
@@ -20,8 +21,15 @@ os.environ["PATH"]='/home/ngrewal/flask/bin:'+os.environ["PATH"]
 
 def observables(omega_b, omega_m, h, n_s, sigma_8, bias, smoothing, nside, thr_ct, sky_frac, a_type, m_type, seed, source_file):
 
+    # start time
+    t0 = time.perf_counter()
+    
     # build new clustering and lensing maps
     cmaps,lmaps = simulate_general_maps(omega_b,omega_m,h,n_s,sigma_8,bias,smoothing,nside,seed,source_file)
+
+    # map generation time
+    t1 = time.perf_counter()
+    print('Map generation time: ',t1-t0,'sec')
     
     # calculate sky fraction
     frac = int(math.floor(sky_frac*12*nside**2))
@@ -80,6 +88,11 @@ def observables(omega_b, omega_m, h, n_s, sigma_8, bias, smoothing, nside, thr_c
             
         # concatenate MFs and Cls
         output = np.concatenate((v0.flatten(),v1.flatten(),v2.flatten(),c.flatten()))
+
+
+    # observable calculation time
+    t2 = time.perf_counter()
+    print('Observable calculation time: ',t2-t1,'sec')
 
                 
     return output
