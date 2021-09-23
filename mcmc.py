@@ -26,14 +26,7 @@ if sky_frac==1:
     sky_frac = int(sky_frac)
 
 # initialise zeus MCMC
-cosmo_params = np.concatenate((np.array([0.048,0.3,0.7,0.96,0.8]),bias))
-nsteps, nwalkers, ndim, nchains = 10, 4*len(cosmo_params), len(cosmo_params), 1
-
-# likelihood function that fixes bias parameters for lensing maps 
-def likelihood_lens(cosmo_params,bias,smoothing,nside,thr_ct,sky_frac,a_type,m_type,source,source_file):
-    cms = [cosmo_params[0],cosmo_params[1],cosmo_params[2],cosmo_params[3],cosmo_params[4]]
-    print('With fixed bias parms: ',cms)
-    return likelihood(cms,bias,smoothing,nside,thr_ct,sky_frac,a_type,m_type,source,source_file)
+nsteps, nwalkers, nchains = 10, 40, 1
 
 # check if sampler exists
 if os.path.exists(os.path.join(os.getcwd(),f'mcmc_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_{source}.p')):
@@ -42,10 +35,12 @@ if os.path.exists(os.path.join(os.getcwd(),f'mcmc_s{smoothing}_n{nside}_t{thr_ct
 else:
     if m_type=='l':
         cosmo_params = np.array([0.048,0.3,0.7,0.96,0.8])
-        nwalkers, ndim = 4*len(cosmo_params), len(cosmo_params)
+        ndim = len(cosmo_params)
         start = np.random.randn(nwalkers, ndim)*cosmo_params*0.01 + np.tile(cosmo_params,(nwalkers,1))
         sampler = emcee.EnsembleSampler(nwalkers, ndim, likelihood_lens, args=[bias,smoothing,nside,thr_ct,sky_frac,a_type,m_type,source,source_file])
     else:
+        cosmo_params = np.concatenate((np.array([0.048,0.3,0.7,0.96,0.8]),bias))
+        ndim = len(cosmo_params)
         start = np.random.randn(nwalkers, ndim)*cosmo_params*0.01 + np.tile(cosmo_params,(nwalkers,1))
         sampler = emcee.EnsembleSampler(nwalkers, ndim, likelihood, args=[smoothing,nside,thr_ct,sky_frac,a_type,m_type,source,source_file])
 
