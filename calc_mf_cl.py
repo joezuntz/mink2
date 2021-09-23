@@ -23,8 +23,12 @@ if sky_frac==1:
     sky_frac = int(sky_frac)
 
 # path for given inputs
-path_mf = '/disk01/ngrewal/MFs'
-path_cl = '/disk01/ngrewal/Cls'
+if os.environ.get('NERSC_HOST', '') == 'cori':
+    path_mf = '/global/cscratch1/sd/zuntz/nisha/MFs'
+    path_cl = '/global/cscratch1/sd/zuntz/nisha/Cls'
+else:
+    path_mf = '/disk01/ngrewal/MFs'
+    path_cl = '/disk01/ngrewal/Cls'
 
 for i in range(itr):
     
