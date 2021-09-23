@@ -6,6 +6,7 @@ from simulate_des_maps import *
 from observables import observables
 
 os.environ["PATH"]='/home/ngrewal/flask/bin:'+os.environ["PATH"]
+os.environ["PATH"]=os.path.abspath("../flask/bin") + ":" +os.environ["PATH"]
 
 # define inputs
 smoothing = int(sys.argv[1])
@@ -22,7 +23,7 @@ bias = get_fiducial_bias(source_file)
 if sky_frac==1:
     sky_frac = int(sky_frac)
 
-# path for given inputs
+# path for given outputs. Different if on NERSC vs cuillin.
 if os.environ.get('NERSC_HOST', '') == 'cori':
     path_mf = '/global/cscratch1/sd/zuntz/nisha/MFs'
     path_cl = '/global/cscratch1/sd/zuntz/nisha/Cls'
