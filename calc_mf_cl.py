@@ -17,6 +17,10 @@ m_type = sys.argv[5]
 source = sys.argv[6]
 source_file = sys.argv[7]
 itr = int(sys.argv[8]) # count of fiducial realisations in thousands
+try:
+    itr_start = int(sys.argv[9])
+except IndexError:
+    itr_start = 0
 
 bias = get_fiducial_bias(source_file)
 
@@ -41,7 +45,7 @@ else:
 
 ncl, nmf = number_of_observables(thr_ct, nside, m_type, source_file)
     
-for i in range(itr):
+for i in range(itr_start, itr_start + itr):
     
     # define index of simulation and output
     if is_cori:

@@ -1,14 +1,17 @@
 #!/bin/bash
 #SBATCH --qos=regular
 #SBATCH --time=12:00:00
-#SBATCH --nodes=8
+#SBATCH --nodes=1
 #SBATCH --tasks-per-node=2
 #SBATCH --cpus-per-task=16
 #SBATCH --constraint=haswell
+#SBATCH --array=1-7,9-12
 
 pushd ..
 source setup
 popd
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${CONDA_PREFIX}/lib
 export OMP_NUM_THREADS=16
-srun -n 16 python calc_mf_cl.py 5 1024 10 0.44 c+l lsst_y1 simulation_code/new_data/lsst_y1.fits 250
+ITR_START=$((SLURM_ARRAY_TASK_ID*500))
+
+srun -n 2 python calc_mf_cl.py 5 1024 10 0.44 c+l lsst_y1 simulation_code/new_data/lsst_y1.fits 500 $ITR_START
