@@ -46,7 +46,8 @@ def setup(options):
         "source": source,
         "source_file": source_file,
         "fiducial_mean": fiducial_mean,
-        "i_cov": i_cov
+        "i_cov": i_cov,
+        "cov": cov
     }
 
 
@@ -71,6 +72,7 @@ def execute(block, config):
     source_file = config["source_file"]
     fiducial_mean = config["fiducial_mean"]
     i_cov = config["i_cov"]
+    cov = config["cov"]
 
     # calculate observables given input parameters
     output = observables(omega_b, omega_m, h, n_s, sigma_8, bias, smoothing, nside, thr_ct, sky_frac, a_type, m_type, seed=29101995, source_file=source_file)
@@ -83,6 +85,10 @@ def execute(block, config):
     L = -0.5 * diff @ i_cov @ diff                 
 
     block["likelihoods", "mfcl_like"] = L
+    block['data_vector','mfcl_theory'] = output
+    block['data_vector','mfcl_data'] = fiducial_mean  
+    block['data_vector','mfcl_icov'] = i_cov  
+    block['data_vector','mfcl_cov'] = cov  
 
 
     return 0
