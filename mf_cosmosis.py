@@ -30,10 +30,12 @@ def setup(options):
     # find the mean of the fiducial observables
     fiducial_mean = np.mean(V,axis=0)        
 
-    itr = len(V)                                          # find number of iterations
-    N_ = itr-1                                            # number of iterations - 1
-    p = len(V[0])                                         # number of observable data points 
-    i_cov = ((N_)/(N_ - p - 1)) * np.linalg.inv(cov)      # find the inverse covariance with the Anderson-Hartlap correction
+    # testing covariance correction
+    #itr = len(V)                                          # find number of iterations
+    #N_ = itr-1                                            # number of iterations - 1
+    #p = len(V[0])                                         # number of observable data points 
+    #i_cov = ((N_)/(N_ - p - 1)) * np.linalg.inv(cov)      # find the inverse covariance with the Anderson-Hartlap correction
+    i_cov = np.linalg.inv(cov) # regular covariance
     
     
     return {

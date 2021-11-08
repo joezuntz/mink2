@@ -29,49 +29,9 @@ print(source_file)
 
 # make worker nodes a variable bc they change frequently
 node_list = 'worker[001-036],worker[038-066],worker[075-076],worker[078-084]'
+                                     
 
-# RUN 3 ANALYSIS STEPS
-
-'''
-# STEP 1: generate maps and measure observables
-# STEP 2: combine observable iterations into a single array
-
-# create a new script
-calc_script = open(f'/home/ngrewal/mink2/sub/calc_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_{source}.sub',"w+")
-
-calc_script.write(          
-f''#!/bin/bash
-#SBATCH --time=100:00:00
-#SBATCH --array=1-1000
-#SBATCH --cpus-per-task=8
-#SBATCH --exclude={node_list}                                                                 
-#SBATCH --nodes=1
-#SBATCH --tasks-per-node=1
-#SBATCH --constraint=scratchdisk
-#SBATCH --output='/disk01/ngrewal/logs/log.mf_cl_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{m_type}_{source}.%a.txt'
-
-export LD_LIBRARY_PATH=${{CONDA_PREFIX}}/lib:${{LD_LIBRARY_PATH}}
-export OMP_NUM_THREADS=8
-export TMPDIR=/scratch/ngrewal
-mkdir -p $TMPDIR
-
-time srun -u -n1 python /home/ngrewal/mink2/calc_mf_cl.py {smoothing} {nside} {thr_ct} {sky_frac} {m_type} {source} {source_file} {itr}
-
-# concatenate fiducial observables
-python /home/ngrewal/mink2/fid_concat.py {smoothing} {nside} {thr_ct} {sky_frac} {a_type} {m_type} {source} {itr}'')
-
-calc_script.close()
-
-# run script
-s = subprocess.run(args = ['sbatch',f'/home/ngrewal/mink2/sub/calc_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_{source}.sub'], capture_output = True)
-print(s)
-
-# gets job id from the compute process instance
-calc_job_id = str(s.stdout).split()[-1][0:6]#+'_1000'
-print(calc_job_id)
-'''
-
-# STEP 3: run an mcmc chain
+# run an mcmc chain
 
 # create a new script
 mcmc_script = open(f'/home/ngrewal/mink2/sub/mcmc_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_{source}.sub',"w+")
@@ -86,12 +46,16 @@ f'''#!/bin/bash
 #SBATCH --constraint=scratchdisk 
 #SBATCH --output=log.mcmc_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_{m_type}_{source}.txt
 
-export LD_LIBRARY_PATH=${{CONDA_PREFIX}}/lib:${{LD_LIBRARY_PATH}}
+export LD_LIBRARY_PATH=/home/ngrewal/.conda/envs/nisha/lib:${{LD_LIBRARY_PATH}}
 export OMP_NUM_THREADS=32                                                                                            
 export TMPDIR=/scratch/ngrewal
 mkdir -p $TMPDIR
 
-time python /home/ngrewal/mink2/mcmc.py {smoothing} {nside} {thr_ct} {sky_frac} {a_type} {m_type} {source} {source_file}''')
+SMOOTHING={smoothing} NSIDE={nside} THR_CT={thr_ct} SKY_FRAC={sky_frac} A_TYPE={a_type} M_TYPE={m_type} SOURCE={source} cosmosis mfcl.ini''')
+# new cosmosis command
+
+# old command
+#time python /home/ngrewal/mink2/mcmc.py {smoothing} {nside} {thr_ct} {sky_frac} {a_type} {m_type} {source} {source_file}
 
 mcmc_script.close()
 
