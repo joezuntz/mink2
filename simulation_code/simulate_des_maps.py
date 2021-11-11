@@ -246,11 +246,11 @@ def run_flask(
 
     # read the maps flask has created from files
     clustering_maps = [
-        healpy.read_map(f"clustering-map-f{i}z{i}.fits", verbose=False, dtype=None).astype(np.float64)
+        healpy.read_map(f"clustering-map-f{i}z{i}.fits", dtype=None).astype(np.float64)
         for i in range(nbin_lens)
     ]
     convergence_maps = [
-        healpy.read_map(f"lensing-map-f{i+nbin_lens}z{i+nbin_lens}.fits", verbose=False, dtype=None).astype(np.float64)
+        healpy.read_map(f"lensing-map-f{i+nbin_lens}z{i+nbin_lens}.fits", dtype=None).astype(np.float64)
         for i in range(nbin_source)
     ]
     
@@ -275,7 +275,7 @@ def run_flask(
     # to radians.  verbose=False stops it from printing out loads of stuff
     for i in range(nbin_lens):
         clustering_maps[i] = healpy.smoothing(
-            clustering_maps[i], fwhm=np.radians(smoothing / 60), verbose=False, iter=1
+            clustering_maps[i], fwhm=np.radians(smoothing / 60), iter=1
         )
         # making this into overdensity
         clustering_maps[i]/=clustering_maps[i].mean()
@@ -283,7 +283,7 @@ def run_flask(
 
     for i in range(nbin_source):
         convergence_maps[i] = healpy.smoothing(
-            convergence_maps[i], fwhm=np.radians(smoothing / 60), verbose=False, iter=1
+            convergence_maps[i], fwhm=np.radians(smoothing / 60), iter=1
         )
 
 
