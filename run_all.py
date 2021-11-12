@@ -57,7 +57,7 @@ mkdir -p $TMPDIR
 time srun -u -n1 python /home/ngrewal/mink2/calc_mf_cl.py {smoothing} {nside} {thr_ct} {sky_frac} {m_type} {source} {source_file} {itr}
 
 # concatenate fiducial observables
-python /home/ngrewal/mink2/fid_concat.py {smoothing} {nside} {thr_ct} {sky_frac} {a_type} {m_type} {source} {itr}''')
+#python /home/ngrewal/mink2/fid_concat.py {smoothing} {nside} {thr_ct} {sky_frac} {a_type} {m_type} {source} {itr}''')
 
 calc_script.close()
 
