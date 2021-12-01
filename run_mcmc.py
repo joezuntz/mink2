@@ -30,7 +30,6 @@ print(source_file)
 # make worker nodes a variable bc they change frequently
 node_list = 'worker[001-036],worker[038-066],worker[075-076],worker[078-084]'
                                      
-
 # run an mcmc chain
 
 # create a new script
