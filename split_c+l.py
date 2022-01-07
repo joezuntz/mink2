@@ -1,6 +1,7 @@
 import numpy as np
 import pymaster as nmt
 import os
+from astropy.io import fits
 
 # define inputs
 sky_frac = 0.44
