@@ -31,10 +31,10 @@ if a_type == 'MF':
     clust = np.concatenate((a[:,0:c],a[:,c+l:c+l+c],a[:,c+l+c+l:c+l+c+l+c]),axis=1)
     lens = np.concatenate((a[:,c:c+l],a[:,c+l+c:c+l+c+l],a[:,c+l+c+l+c:]),axis=1)
     
-# get Cl info (will uncomment once pymaster is working)
-#bins = nmt.NmtBin.from_nside_linear(nside,50)
-#cl_len = bins.get_n_bands()
-cl_len = int(450/15) #short-term hardcode for 10 clust maps and 5 lens maps
+# get Cl info
+bins = nmt.NmtBin.from_nside_linear(nside,50)
+cl_len = bins.get_n_bands()
+#cl_len = int(450/15) #short-term hardcode for 10 clust maps and 5 lens maps
 
 if a_type == 'Cl':
     m = c_bins*cl_len # Cls are all clustering then all lensing data points 
