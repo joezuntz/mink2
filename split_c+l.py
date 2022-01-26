@@ -34,7 +34,6 @@ if a_type == 'MF':
 # get Cl info
 bins = nmt.NmtBin.from_nside_linear(nside,50)
 cl_len = bins.get_n_bands()
-#cl_len = int(450/15) #short-term hardcode for 10 clust maps and 5 lens maps
 
 if a_type == 'Cl':
     m = c_bins*cl_len # Cls are all clustering then all lensing data points 
@@ -61,3 +60,7 @@ if a_type == 'MF+Cl': # saved MFs first then Cls in array
 
     
 print(a_type,' Total: ',a.shape,'/n Clustering: ',clust.shape,'/n Lensing: ',lens.shape)
+
+# save array
+np.save(f'all_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_c_{source}.npy',clust)
+np.save(f'all_s{smoothing}_n{nside}_t{thr_ct}_f{sky_frac}_{a_type}_l_{source}.npy',lens)
