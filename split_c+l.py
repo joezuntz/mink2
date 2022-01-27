@@ -5,11 +5,11 @@ from astropy.io import fits
 
 # define inputs
 sky_frac = 0.44
-a_type = 'MF+Cl'
-smoothing = 10
+a_type = 'Cl'
+smoothing = 5
 nside = 1024
 thr_ct = 10
-source = 'lsst_y10'
+source = 'lsst_y1'
 source_file = os.path.abspath(os.path.join(os.getcwd(), "simulation_code/new_data", source+".fits"))
 
 # load source file to get bin count
@@ -32,7 +32,7 @@ if a_type == 'MF':
     lens = np.concatenate((a[:,c:c+l],a[:,c+l+c:c+l+c+l],a[:,c+l+c+l+c:]),axis=1)
     
 # get Cl info
-bins = nmt.NmtBin.from_nside_linear(nside,50)
+bins = nmt.NmtBin.from_lmax_linear(lmax=int(1.5*nside),nlb=50)
 cl_len = bins.get_n_bands()
 
 if a_type == 'Cl':
