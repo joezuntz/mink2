@@ -114,7 +114,7 @@ def V_12(v,k,kx,ky,kxx,kxy,kyy):
 
 
 # calculate MFs for a single map    
-def calc_mf(m,thr_ct,f,is_clustering):
+def calc_mf(m,thr_ct,f):
 
     v_0 = np.zeros(thr_ct)
     v_1 = np.zeros(thr_ct)
@@ -124,10 +124,12 @@ def calc_mf(m,thr_ct,f,is_clustering):
 
     std_dev = np.std(m) 
     
-    if is_clustering is True:
-        v = np.linspace(0,6*std_dev,thr_ct)              # clustering map range
-    else:
-        v = np.linspace(-3*std_dev, 3*std_dev,thr_ct)    # lensing map range
+    v = np.linspace(-3*std_dev, 3*std_dev,thr_ct)
+    
+    #if is_clustering is True:
+    #    v = np.linspace(0,6*std_dev,thr_ct)              # clustering map range
+    #else:
+    #    v = np.linspace(-3*std_dev, 3*std_dev,thr_ct)    # lensing map range
         
     v_0 = V_0(v, m[:f])
     v_1,v_2 = V_12(v, m[:f], dm_dphi[:f], dm_dtheta[:f], d2m_dphi2[:f], d2m_dtheta_dphi[:f], d2m_dtheta2[:f])
@@ -149,9 +151,9 @@ def calc_mf_2maps(clustering_maps,lensing_maps,thr_ct,f):
     i = -1   # define i in case of lensing map only
 
     for i,m in enumerate(clustering_maps):
-        v[i], v0[i], v1[i], v2[i] = calc_mf(m, thr_ct, f, is_clustering=True)
+        v[i], v0[i], v1[i], v2[i] = calc_mf(m, thr_ct, f)
 
     for j,m in enumerate(lensing_maps):
-        v[j+i+1], v0[j+i+1], v1[j+i+1], v2[j+i+1] = calc_mf(m, thr_ct, f, is_clustering=False)   
+        v[j+i+1], v0[j+i+1], v1[j+i+1], v2[j+i+1] = calc_mf(m, thr_ct, f)   
 
     return v,v0,v1,v2 
